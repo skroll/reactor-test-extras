@@ -2,7 +2,7 @@ language: java
 jdk:
   - oraclejdk8
 
-script: mvn -Pclover clean clover:setup test clover:clover
+script: ./mvnw -Pclover clean clover:setup test clover:clover
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
