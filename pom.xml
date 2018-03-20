@@ -162,6 +162,12 @@
                         <groupId>org.openclover</groupId>
                         <artifactId>clover-maven-plugin</artifactId>
                         <version>${clover.plugin.version}</version>
+                        <configuration>
+                            <generatePdf>false</generatePdf>
+                            <generateXml>true</generateXml>
+                            <generateHtml>false</generateHtml>
+                            <generateJson>false</generateJson>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>
