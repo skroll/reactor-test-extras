@@ -1,8 +1,6 @@
 package org.skroll.reactor.test;
 
-import org.junit.jupiter.api.Test;
-import org.junit.platform.runner.JUnitPlatform;
-import org.junit.runner.RunWith;
+import org.junit.Test;
 import org.mockito.InOrder;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -13,6 +11,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Operators;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
+import reactor.util.annotation.NonNull;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -26,8 +25,13 @@ import static org.mockito.Mockito.times;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@RunWith(JUnitPlatform.class)
 public class TestSubscriberTest {
+  @Test
+  public void testInvalidInitialRequest() {
+    assertThrows(IllegalArgumentException.class, () -> new TestSubscriber<Integer>(-1));
+    assertThrows(IllegalArgumentException.class, () -> new TestSubscriber<Integer>(TestSubscriber.EmptySubscriber.INSTANCE, -1));
+  }
+
   @Test
   public void testAssert() {
     Flux<Integer> oi = Flux.fromIterable(Arrays.asList(1, 2));
