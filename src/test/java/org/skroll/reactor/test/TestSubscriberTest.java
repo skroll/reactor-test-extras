@@ -1,8 +1,8 @@
 package org.skroll.reactor.test;
 
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
+import org.junit.platform.runner.JUnitPlatform;
+import org.junit.runner.RunWith;
 import org.mockito.InOrder;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -21,14 +21,13 @@ import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.junit.Assert.*;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.times;
 
-public class TestSubscriberTest {
-  @Rule
-  public ExpectedException thrown = ExpectedException.none();
+import static org.junit.jupiter.api.Assertions.*;
 
+@RunWith(JUnitPlatform.class)
+public class TestSubscriberTest {
   @Test
   public void testAssert() {
     Flux<Integer> oi = Flux.fromIterable(Arrays.asList(1, 2));
@@ -46,9 +45,7 @@ public class TestSubscriberTest {
     TestSubscriber<Integer> o = new TestSubscriber<>();
     oi.subscribe(o);
 
-    thrown.expect(AssertionError.class);
-
-    o.assertValue(1);
+    assertThrows(AssertionError.class, () -> o.assertValue(1));
     o.assertValueCount(2);
     o.assertTerminated();
   }
@@ -59,9 +56,7 @@ public class TestSubscriberTest {
     TestSubscriber<Integer> o = new TestSubscriber<>();
     oi.subscribe(o);
 
-    thrown.expect(AssertionError.class);
-
-    o.assertValues(1, 3);
+    assertThrows(AssertionError.class, () -> o.assertValues(1, 3));
     o.assertValueCount(2);
     o.assertTerminated();
   }
@@ -83,9 +78,7 @@ public class TestSubscriberTest {
     Flux.just(1, 2).subscribe(ts);
     ts.assertValues(1, 2);
 
-    thrown.expect(AssertionError.class);
-
-    ts.assertNever(o -> o == 1);
+    assertThrows(AssertionError.class, () -> ts.assertNever(o -> o == 1));
   }
 
   @Test
@@ -105,11 +98,9 @@ public class TestSubscriberTest {
     p.onNext(1);
     p.onNext(2);
 
-    thrown.expect(AssertionError.class);
-
     o.assertValues(1, 2);
     o.assertValueCount(2);
-    o.assertTerminated();
+    assertThrows(AssertionError.class, o::assertTerminated);
   }
 
   @Test
@@ -168,22 +159,16 @@ public class TestSubscriberTest {
     assertTrue(unsub.get());
   }
 
-  @Test(expected = NullPointerException.class)
+  @Test
   public void testNullDelegate1() {
     TestSubscriber<Integer> ts = new TestSubscriber<>(null);
-    ts.onComplete();
+    assertThrows(NullPointerException.class, ts::onComplete);
   }
 
-  @Test(expected = NullPointerException.class)
-  public void testNullDelegate2() {
-    TestSubscriber<Integer> ts = new TestSubscriber<>(null);
-    ts.onComplete();
-  }
-
-  @Test(expected = NullPointerException.class)
+  @Test
   public void testNullDelegate3() {
     TestSubscriber<Integer> ts = new TestSubscriber<>(null, 0L);
-    ts.onComplete();
+    assertThrows(NullPointerException.class, ts::onComplete);
   }
 
   @Test
@@ -637,7 +622,7 @@ public class TestSubscriberTest {
     }
   }
 
-  @Test(timeout = 1000)
+  @Test
   public void testOnCompletedCrashCountsDownLatch() {
     TestSubscriber<Integer> ts0 = new TestSubscriber<Integer>() {
       @Override
@@ -656,7 +641,7 @@ public class TestSubscriberTest {
     ts.awaitTerminalEvent();
   }
 
-  @Test(timeout = 1000)
+  @Test
   public void testOnErrorCrashCountsDownLatch() {
     TestSubscriber<Integer> ts0 = new TestSubscriber<Integer>() {
       @Override
@@ -1013,7 +998,7 @@ public class TestSubscriberTest {
 
   }
 
-  @Test(timeout = 5000)
+  @Test
   public void await() throws Exception {
     TestSubscriber<Integer> ts = TestSubscriber.create();
 
@@ -1361,7 +1346,7 @@ public class TestSubscriberTest {
     try {
       ts.awaitDone(5, TimeUnit.SECONDS);
     } catch (RuntimeException ex) {
-      assertTrue(ex.toString(), ex.getCause() instanceof InterruptedException);
+      assertTrue(ex.getCause() instanceof InterruptedException, ex.toString());
     }
   }
 
@@ -1564,9 +1549,7 @@ public class TestSubscriberTest {
 
     Flux.empty().subscribe(ts);
 
-    thrown.expect(AssertionError.class);
-    thrown.expectMessage("No values");
-    ts.assertValue(o -> false);
+    assertThrows(AssertionError.class, () -> ts.assertValue(o -> false), "No values");
   }
 
   @Test
@@ -1584,9 +1567,7 @@ public class TestSubscriberTest {
 
     Flux.just(1).subscribe(ts);
 
-    thrown.expect(AssertionError.class);
-    thrown.expectMessage("Value not present");
-    ts.assertValue(o -> o != 1);
+    assertThrows(AssertionError.class, () -> ts.assertValue(o -> o != 1), "Value not present");
   }
 
   @Test
@@ -1595,9 +1576,7 @@ public class TestSubscriberTest {
 
     Flux.just(1, 2).subscribe(ts);
 
-    thrown.expect(AssertionError.class);
-    thrown.expectMessage("Value present but other values as well");
-    ts.assertValue(o -> o == 1);
+    assertThrows(AssertionError.class, () -> ts.assertValue(o -> o == 1), "Value present but other values as well");
   }
 
   @Test
@@ -1606,9 +1585,7 @@ public class TestSubscriberTest {
 
     Flux.empty().subscribe(ts);
 
-    thrown.expect(AssertionError.class);
-    thrown.expectMessage("No values");
-    ts.assertValueAt(0, o -> false);
+    assertThrows(AssertionError.class, () -> ts.assertValueAt(0, o -> false), "No values");
   }
 
   @Test
@@ -1626,9 +1603,7 @@ public class TestSubscriberTest {
 
     Flux.just(1, 2, 3).subscribe(ts);
 
-    thrown.expect(AssertionError.class);
-    thrown.expectMessage("Value not present");
-    ts.assertValueAt(2, o -> o != 3);
+    assertThrows(AssertionError.class, () -> ts.assertValueAt(2, o -> o != 3), "Value not present");
   }
 
   @Test
@@ -1637,9 +1612,7 @@ public class TestSubscriberTest {
 
     Flux.just(1, 2).subscribe(ts);
 
-    thrown.expect(AssertionError.class);
-    thrown.expectMessage("Invalid index: 2 (latch = 0, values = 2, errors = 0, completions = 1)");
-    ts.assertValueAt(2, o -> o == 1);
+    assertThrows(AssertionError.class, () -> ts.assertValueAt(2, o -> o == 1), "Invalid index: 2 (latch = 0, values = 2, errors = 0, completions = 1)");
   }
 
   @Test
@@ -1671,7 +1644,7 @@ public class TestSubscriberTest {
       }
       fail("Should have thrown!");
     } catch (AssertionError ex) {
-      assertTrue(ex.toString(), ex.toString().contains("testing with item=2"));
+      assertTrue(ex.toString().contains("testing with item=2"), ex.toString());
     }
   }
 
@@ -1688,7 +1661,7 @@ public class TestSubscriberTest {
       ts.assertResult(1);
       fail("Should have thrown!");
     } catch (AssertionError ex) {
-      assertTrue(ex.toString(), ex.toString().contains("timeout!"));
+      assertTrue(ex.toString().contains("timeout!"), ex.toString());
     }
   }
 
@@ -1704,7 +1677,7 @@ public class TestSubscriberTest {
 
       fail("Should have thrown!");
     } catch (AssertionError ex) {
-      assertTrue(ex.toString(), ex.toString().contains("timeout!"));
+      assertTrue(ex.toString().contains("timeout!"), ex.toString());
     }
   }
 
@@ -1721,7 +1694,7 @@ public class TestSubscriberTest {
       ts.assertResult(1);
       fail("Should have thrown!");
     } catch (AssertionError ex) {
-      assertTrue(ex.toString(), ex.toString().contains("timeout!"));
+      assertTrue(ex.toString().contains("timeout!"), ex.toString());
     }
   }
 
@@ -1734,7 +1707,7 @@ public class TestSubscriberTest {
       ts.assertResult(1);
       fail("Should have thrown!");
     } catch (Throwable ex) {
-      assertTrue(ex.toString(), ex.toString().contains("disposed!"));
+      assertTrue(ex.toString().contains("disposed!"), ex.toString());
     }
   }
 
@@ -1795,7 +1768,7 @@ public class TestSubscriberTest {
       Thread.currentThread().interrupt();
       BaseTestConsumer.TestWaitStrategy.SLEEP_1000MS.run();
     } catch (RuntimeException ex) {
-      assertTrue(ex.toString(), ex.getCause() instanceof InterruptedException);
+      assertTrue(ex.getCause() instanceof InterruptedException, ex.toString());
     }
   }
 
@@ -1832,7 +1805,7 @@ public class TestSubscriberTest {
           .assertTimeout();
       fail("Should have thrown!");
     } catch (AssertionError ex) {
-      assertTrue(ex.toString(), ex.getMessage().contains("No timeout?!"));
+      assertTrue(ex.getMessage().contains("No timeout?!"), ex.toString());
     }
   }
 
@@ -1858,7 +1831,7 @@ public class TestSubscriberTest {
           .assertNoTimeout();
       fail("Should have thrown!");
     } catch (AssertionError ex) {
-      assertTrue(ex.toString(), ex.getMessage().contains("Timeout?!"));
+      assertTrue(ex.getMessage().contains("Timeout?!"), ex.toString());
     }
   }
 
@@ -1927,7 +1900,7 @@ public class TestSubscriberTest {
 
     try {
       ts.assertValuesOnly(5);
-      fail();
+      fail("");
     } catch (AssertionError ex) {
       // expected
     }
@@ -1942,7 +1915,7 @@ public class TestSubscriberTest {
 
     try {
       ts.assertValuesOnly();
-      fail();
+      fail("");
     } catch (AssertionError ex) {
       // expected
     }
@@ -1957,13 +1930,13 @@ public class TestSubscriberTest {
 
     try {
       ts.assertValuesOnly();
-      fail();
+      fail("");
     } catch (AssertionError ex) {
       // expected
     }
   }
 
-  @Test(timeout = 1000)
+  @Test
   public void awaitCount0() {
     TestSubscriber<Integer> ts = TestSubscriber.create();
     ts.awaitCount(0, BaseTestConsumer.TestWaitStrategy.SLEEP_1MS, 0);
