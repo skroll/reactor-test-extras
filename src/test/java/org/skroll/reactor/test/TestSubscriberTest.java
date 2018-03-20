@@ -842,12 +842,10 @@ public class TestSubscriberTest {
     ts.assertValueCount(0);
 
     ts.assertNoValues();
-
-
   }
 
   @Test
-  public void emptyObserverEnum() {
+  public void emptySubscriberEnum() {
     assertEquals(1, TestSubscriber.EmptySubscriber.values().length);
     assertNotNull(TestSubscriber.EmptySubscriber.valueOf("INSTANCE"));
   }

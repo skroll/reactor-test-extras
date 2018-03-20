@@ -65,7 +65,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
    * more items may result in a {@code ConcurrentModificationException}.
    * <p>
    * The {@link List#size()} method will return the number of items
-   * already received by this TestObserver/TestSubscriber in a thread-safe
+   * already received by this TestSubscriber in a thread-safe
    * manner that can be read via {@link List#get(int)}) method
    * (index range of 0 to {@code List.size() - 1}).
    * <p>
@@ -184,7 +184,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
   }
 
   /**
-   * Awaits until this TestObserver/TestSubscriber receives an onError or onComplete events.
+   * Awaits until this TestSubscriber receives an onError or onComplete events.
    * @return this
    * @throws InterruptedException if the current thread is interrupted while waiting
    * @see #awaitTerminalEvent()
@@ -200,11 +200,11 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
   }
 
   /**
-   * Awaits the specified amount of time or until this TestObserver/TestSubscriber
+   * Awaits the specified amount of time or until this TestSubscriber
    * receives an onError or onComplete events, whichever happens first.
    * @param time the waiting time
    * @param unit the time unit of the waiting time
-   * @return true if the TestObserver/TestSubscriber terminated, false if timeout happened
+   * @return true if the TestSubscriber terminated, false if timeout happened
    * @throws InterruptedException if the current thread is interrupted while waiting
    * @see #awaitTerminalEvent(long, TimeUnit)
    */
@@ -215,11 +215,11 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
   }
 
   /**
-   * Awaits the specified amount of time or until this TestObserver/TestSubscriber
+   * Awaits the specified amount of time or until this TestSubscriber
    * receives an onError or onComplete events, whichever happens first.
    * @param duration the waiting time
    * @param unit the time unit of the waiting time
-   * @return true if the TestObserver/TestSubscriber terminated, false if timeout or interrupt happened
+   * @return true if the TestSubscriber terminated, false if timeout or interrupt happened
    */
   public final boolean awaitTerminalEvent(long duration, TimeUnit unit) {
     try {
@@ -231,9 +231,9 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
   }
 
   /**
-   * Waits until the any terminal event has been received by this TestObserver/TestSubscriber
+   * Waits until the any terminal event has been received by this TestSubscriber
    * or returns false if the wait has been interrupted.
-   * @return true if the TestObserver/TestSubscriber terminated, false if the wait has been interrupted
+   * @return true if the TestSubscriber terminated, false if the wait has been interrupted
    */
   public final boolean awaitTerminalEvent() {
     try {
@@ -247,7 +247,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
 
   /**
    * Awaits until the internal latch is counted down.
-   * <p>If the wait times out or gets interrupted, the TestObserver/TestSubscriber is cancelled.
+   * <p>If the wait times out or gets interrupted, the TestSubscriber is cancelled.
    * @param time the waiting time
    * @param unit the time unit of the waiting time
    * @return this
@@ -270,8 +270,6 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
   /**
    * Enumeration of default wait strategies when waiting for a specific number of
    * items in {@link BaseTestConsumer#awaitCount(int, Runnable)}.
-   * <p>History: 2.0.7 - experimental
-   * @since 2.1
    */
   public enum TestWaitStrategy implements Runnable {
     /** The wait loop will spin as fast as possible. */
@@ -332,24 +330,21 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
 
 
   /**
-   * Await until the TestObserver/TestSubscriber receives the given
+   * Await until the TestSubscriber receives the given
    * number of items or terminates by sleeping 10 milliseconds at a time
    * up to 5000 milliseconds of timeout.
-   * <p>History: 2.0.7 - experimental
    * @param atLeast the number of items expected at least
    * @return this
    * @see #awaitCount(int, Runnable, long)
-   * @since 2.1
    */
   public final U awaitCount(int atLeast) {
     return awaitCount(atLeast, TestWaitStrategy.SLEEP_10MS, 5000);
   }
 
   /**
-   * Await until the TestObserver/TestSubscriber receives the given
+   * Await until the TestSubscriber receives the given
    * number of items or terminates by waiting according to the wait
    * strategy and up to 5000 milliseconds of timeout.
-   * <p>History: 2.0.7 - experimental
    * @param atLeast the number of items expected at least
    * @param waitStrategy a Runnable called when the current received count
    *                     hasn't reached the expected value and there was
@@ -357,16 +352,14 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
    *                     for examples
    * @return this
    * @see #awaitCount(int, Runnable, long)
-   * @since 2.1
    */
   public final U awaitCount(int atLeast, Runnable waitStrategy) {
     return awaitCount(atLeast, waitStrategy, 5000);
   }
 
   /**
-   * Await until the TestObserver/TestSubscriber receives the given
+   * Await until the TestSubscriber receives the given
    * number of items or terminates.
-   * <p>History: 2.0.7 - experimental
    * @param atLeast the number of items expected at least
    * @param waitStrategy a Runnable called when the current received count
    *                     hasn't reached the expected value and there was
@@ -375,7 +368,6 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
    * @param timeoutMillis if positive, the await ends if the specified amount of
    *                      time has passed no matter how many items were received
    * @return this
-   * @since 2.1
    */
   @SuppressWarnings("unchecked")
   public final U awaitCount(int atLeast, Runnable waitStrategy, long timeoutMillis) {
@@ -445,7 +437,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
   }
 
   /**
-   * Assert that this TestObserver/TestSubscriber received exactly the specified onError event value.
+   * Assert that this TestSubscriber received exactly the specified onError event value.
    *
    * <p>The comparison is performed via Objects.equals(); since most exceptions don't
    * implement equals(), this assertion may fail. Use the {@link #assertError(Class)}
@@ -461,7 +453,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
   }
 
   /**
-   * Asserts that this TestObserver/TestSubscriber received exactly one onError event which is an
+   * Asserts that this TestSubscriber received exactly one onError event which is an
    * instance of the specified errorClass class.
    * @param errorClass the error class to expect
    * @return this;
@@ -472,7 +464,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
   }
 
   /**
-   * Asserts that this TestObserver/TestSubscriber received exactly one onError event for which
+   * Asserts that this TestSubscriber received exactly one onError event for which
    * the provided predicate returns true.
    * @param errorPredicate
    *            the predicate that receives the error Throwable
@@ -529,7 +521,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
   }
 
   /**
-   * Assert that this TestObserver/TestSubscriber did not receive an onNext value which is equal to
+   * Assert that this TestSubscriber did not receive an onNext value which is equal to
    * the given value with respect to null-safe Object.equals.
    *
    * @param value the value to expect not being received
@@ -549,7 +541,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
   }
 
   /**
-   * Asserts that this TestObserver/TestSubscriber received exactly one onNext value for which
+   * Asserts that this TestSubscriber received exactly one onNext value for which
    * the provided predicate returns true.
    * @param valuePredicate
    *            the predicate that receives the onNext value
@@ -568,7 +560,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
   }
 
   /**
-   * Asserts that this TestObserver/TestSubscriber did not receive any onNext value for which
+   * Asserts that this TestSubscriber did not receive any onNext value for which
    * the provided predicate returns true.
    *
    * @param valuePredicate the predicate that receives the onNext value
@@ -618,7 +610,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
   }
 
   /**
-   * Asserts that this TestObserver/TestSubscriber received an onNext value at the given index
+   * Asserts that this TestSubscriber received an onNext value at the given index
    * for the provided predicate returns true.
    * @param index the position to assert on
    * @param valuePredicate
@@ -688,7 +680,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
   }
 
   /**
-   * Assert that the TestObserver/TestSubscriber received only the specified values in the specified order.
+   * Assert that the TestSubscriber received only the specified values in the specified order.
    * @param values the values expected
    * @return this;
    * @see #assertValueSet(Collection)
@@ -716,7 +708,6 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
    * Assert that the TestSubscriber received only the specified values in the specified order without terminating.
    * @param values the values expected
    * @return this;
-   * @since 2.1.4
    */
   @SuppressWarnings("unchecked")
   public final U assertValuesOnly(T... values) {
@@ -749,7 +740,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
   }
 
   /**
-   * Assert that the TestObserver/TestSubscriber received only the specified sequence of values in the same order.
+   * Assert that the TestSubscriber received only the specified sequence of values in the same order.
    * @param sequence the sequence of expected values in order
    * @return this;
    */
@@ -946,7 +937,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
   }
 
   /**
-   * Assert that the TestObserver/TestSubscriber has received a Disposable but no other events.
+   * Assert that the TestSubscriber has received a Disposable but no other events.
    * @return this
    */
   public final U assertEmpty() {
@@ -970,11 +961,9 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
 
   /**
    * @return true if one of the timeout-based await methods has timed out.
-   * <p>History: 2.0.7 - experimental
    * @see #clearTimeout()
    * @see #assertTimeout()
    * @see #assertNoTimeout()
-   * @since 2.1
    */
   public final boolean isTimeout() {
     return timeout;
@@ -982,9 +971,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
 
   /**
    * Clears the timeout flag set by the await methods when they timed out.
-   * <p>History: 2.0.7 - experimental
    * @return this
-   * @since 2.1
    * @see #isTimeout()
    */
   @SuppressWarnings("unchecked")
@@ -995,9 +982,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
 
   /**
    * Asserts that some awaitX method has timed out.
-   * <p>History: 2.0.7 - experimental
    * @return this
-   * @since 2.1
    */
   @SuppressWarnings("unchecked")
   public final U assertTimeout() {
@@ -1009,9 +994,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
 
   /**
    * Asserts that some awaitX method has not timed out.
-   * <p>History: 2.0.7 - experimental
    * @return this
-   * @since 2.1
    */
   @SuppressWarnings("unchecked")
   public final U assertNoTimeout() {
