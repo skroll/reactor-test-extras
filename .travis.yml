@@ -1,8 +1,6 @@
 language: java
 
-script:
-  - mvn test -B
-  - mvn -Pclover clean clover:setup test clover:clover
+script: mvn -Pclover clean clover:setup test clover:clover
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
