@@ -700,6 +700,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
       throw fail("Value count differs; Expected: " + values.length + " " + Arrays.toString(values)
           + ", Actual: " + s + " " + this.values);
     }
+
     for (int i = 0; i < s; i++) {
       T v = this.values.get(i);
       T u = values[i];
@@ -707,7 +708,8 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
         throw fail("Values at position " + i + " differ; Expected: " + valueAndClass(u) + ", Actual: " + valueAndClass(v));
       }
     }
-    return (U)this;
+
+    return (U) this;
   }
 
   /**
@@ -1004,7 +1006,6 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
     }
     return (U)this;
   }
-
 
   /**
    * Asserts that some awaitX method has not timed out.

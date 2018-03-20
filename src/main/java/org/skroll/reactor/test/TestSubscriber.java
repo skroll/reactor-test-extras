@@ -36,14 +36,13 @@ public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>> im
   /** Holds the requested amount until a subscription arrives. */
   private final AtomicLong missedRequested;
 
-
   /**
    * Creates a TestSubscriber with Long.MAX_VALUE initial request.
    * @param <T> the value type
    * @return the new TestSubscriber instance.
    */
   public static <T> TestSubscriber<T> create() {
-    return new TestSubscriber<T>();
+    return new TestSubscriber<>();
   }
 
   /**
@@ -53,17 +52,17 @@ public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>> im
    * @return the new TestSubscriber instance.
    */
   public static <T> TestSubscriber<T> create(long initialRequested) {
-    return new TestSubscriber<T>(initialRequested);
+    return new TestSubscriber<>(initialRequested);
   }
 
   /**
    * Constructs a forwarding TestSubscriber.
    * @param <T> the value type received
    * @param delegate the actual Subscriber to forward events to
-   * @return the new TestObserver instance
+   * @return the new TestSubscriber instance
    */
   public static <T> TestSubscriber<T> create(Subscriber<? super T> delegate) {
-    return new TestSubscriber<T>(delegate);
+    return new TestSubscriber<>(delegate);
   }
 
   /**
@@ -107,7 +106,6 @@ public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>> im
     this.subscription = new AtomicReference<Subscription>();
     this.missedRequested = new AtomicLong(initialRequest);
   }
-
 
   @SuppressWarnings("unchecked")
   @Override
@@ -172,10 +170,11 @@ public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>> im
     }
     try {
       lastThread = Thread.currentThread();
-      errors.add(t);
 
       if (t == null) {
         errors.add(new IllegalStateException("onError received a null Throwable"));
+      } else {
+        errors.add(t);
       }
 
       actual.onError(t);
@@ -281,6 +280,8 @@ public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>> im
   public final TestSubscriber<T> assertOf(Consumer<? super TestSubscriber<T>> check) {
     try {
       check.accept(this);
+    } catch (AssertionError e) {
+      throw e;
     } catch (Throwable ex) {
       throw Exceptions.propagate(ex);
     }
