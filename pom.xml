@@ -129,33 +129,33 @@
                 </configuration>
             </plugin>
 
-            <!--<plugin>-->
-                <!--<groupId>org.apache.maven.plugins</groupId>-->
-                <!--<artifactId>maven-checkstyle-plugin</artifactId>-->
-                <!--<version>${maven.checkstyle.plugin.version}</version>-->
-                <!--<executions>-->
-                    <!--<execution>-->
-                        <!--<id>validate</id>-->
-                        <!--<phase>validate</phase>-->
-                        <!--<configuration>-->
-                            <!--<configLocation>checkstyle.xml</configLocation>-->
-                            <!--<encoding>${project.build.sourceEncoding}</encoding>-->
-                            <!--<consoleOutput>true</consoleOutput>-->
-                            <!--<failsOnError>true</failsOnError>-->
-                        <!--</configuration>-->
-                        <!--<goals>-->
-                            <!--<goal>check</goal>-->
-                        <!--</goals>-->
-                    <!--</execution>-->
-                <!--</executions>-->
-                <!--<dependencies>-->
-                    <!--<dependency>-->
-                        <!--<groupId>com.puppycrawl.tools</groupId>-->
-                        <!--<artifactId>checkstyle</artifactId>-->
-                        <!--<version>${checkstyle.version}</version>-->
-                    <!--</dependency>-->
-                <!--</dependencies>-->
-            <!--</plugin>-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>${maven.checkstyle.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>validate</id>
+                        <phase>validate</phase>
+                        <configuration>
+                            <configLocation>checkstyle.xml</configLocation>
+                            <encoding>${project.build.sourceEncoding}</encoding>
+                            <consoleOutput>true</consoleOutput>
+                            <failsOnError>true</failsOnError>
+                        </configuration>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>${checkstyle.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
         </plugins>
     </build>
 
