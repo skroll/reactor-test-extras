@@ -1,7 +1,14 @@
 package org.skroll.reactor.test.internal.util;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.RandomAccess;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import reactor.util.annotation.NonNull;
 
 /**
  * Tracks the current underlying array size in a volatile field.
@@ -17,8 +24,8 @@ public final class VolatileSizeArrayList<T> extends AtomicInteger implements Lis
     list = new ArrayList<>();
   }
 
-  public VolatileSizeArrayList(final int initalCapacity) {
-    list = new ArrayList<>(initalCapacity);
+  public VolatileSizeArrayList(final int initialCapacity) {
+    list = new ArrayList<>(initialCapacity);
   }
 
   @Override
@@ -32,7 +39,7 @@ public final class VolatileSizeArrayList<T> extends AtomicInteger implements Lis
   }
 
   @Override
-  public boolean contains(Object o) {
+  public boolean contains(final Object o) {
     return list.contains(o);
   }
 
@@ -47,52 +54,65 @@ public final class VolatileSizeArrayList<T> extends AtomicInteger implements Lis
   }
 
   @Override
-  public <E> E[] toArray(E[] a) {
+  public <E> E[] toArray(@NonNull final E[] a) {
     return list.toArray(a);
   }
 
   @Override
-  public boolean add(T e) {
+  public boolean add(final T e) {
     boolean b = list.add(e);
     lazySet(list.size());
     return b;
   }
 
   @Override
-  public boolean remove(Object o) {
+  public void add(final int index, final T element) {
+    list.add(index, element);
+    lazySet(list.size());
+  }
+
+  @Override
+  public boolean remove(final Object o) {
     boolean b = list.remove(o);
     lazySet(list.size());
     return b;
   }
 
   @Override
-  public boolean containsAll(Collection<?> c) {
+  public T remove(final int index) {
+    T v = list.remove(index);
+    lazySet(list.size());
+    return v;
+  }
+
+  @Override
+  public boolean containsAll(@NonNull final Collection<?> c) {
     return list.containsAll(c);
   }
 
   @Override
-  public boolean addAll(Collection<? extends T> c) {
+  public boolean addAll(@NonNull final Collection<? extends T> c) {
     boolean b = list.addAll(c);
     lazySet(list.size());
     return b;
   }
 
   @Override
-  public boolean addAll(int index, Collection<? extends T> c) {
+  public boolean addAll(final int index, @NonNull final Collection<? extends T> c) {
     boolean b = list.addAll(index, c);
     lazySet(list.size());
     return b;
   }
 
   @Override
-  public boolean removeAll(Collection<?> c) {
+  public boolean removeAll(@NonNull final Collection<?> c) {
     boolean b = list.removeAll(c);
     lazySet(list.size());
     return b;
   }
 
   @Override
-  public boolean retainAll(Collection<?> c) {
+  public boolean retainAll(@NonNull final Collection<?> c) {
     boolean b = list.retainAll(c);
     lazySet(list.size());
     return b;
@@ -105,35 +125,22 @@ public final class VolatileSizeArrayList<T> extends AtomicInteger implements Lis
   }
 
   @Override
-  public T get(int index) {
+  public T get(final int index) {
     return list.get(index);
   }
 
   @Override
-  public T set(int index, T element) {
+  public T set(final int index, final T element) {
     return list.set(index, element);
   }
 
   @Override
-  public void add(int index, T element) {
-    list.add(index, element);
-    lazySet(list.size());
-  }
-
-  @Override
-  public T remove(int index) {
-    T v = list.remove(index);
-    lazySet(list.size());
-    return v;
-  }
-
-  @Override
-  public int indexOf(Object o) {
+  public int indexOf(final Object o) {
     return list.indexOf(o);
   }
 
   @Override
-  public int lastIndexOf(Object o) {
+  public int lastIndexOf(final Object o) {
     return list.lastIndexOf(o);
   }
 
@@ -143,19 +150,19 @@ public final class VolatileSizeArrayList<T> extends AtomicInteger implements Lis
   }
 
   @Override
-  public ListIterator<T> listIterator(int index) {
+  public ListIterator<T> listIterator(final int index) {
     return list.listIterator(index);
   }
 
   @Override
-  public List<T> subList(int fromIndex, int toIndex) {
+  public List<T> subList(final int fromIndex, final int toIndex) {
     return list.subList(fromIndex, toIndex);
   }
 
   @Override
-  public boolean equals(Object obj) {
+  public boolean equals(final Object obj) {
     if (obj instanceof VolatileSizeArrayList) {
-      return list.equals(((VolatileSizeArrayList<?>)obj).list);
+      return list.equals(((VolatileSizeArrayList<?>) obj).list);
     }
     return list.equals(obj);
   }

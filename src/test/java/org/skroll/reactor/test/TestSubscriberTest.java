@@ -11,7 +11,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Operators;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
-import reactor.util.annotation.NonNull;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -30,6 +29,16 @@ public class TestSubscriberTest {
   public void testInvalidInitialRequest() {
     assertThrows(IllegalArgumentException.class, () -> new TestSubscriber<Integer>(-1));
     assertThrows(IllegalArgumentException.class, () -> new TestSubscriber<Integer>(TestSubscriber.EmptySubscriber.INSTANCE, -1));
+  }
+
+  @Test
+  public void testDoubleCancel() {
+    TestSubscriber<Integer> ts = new TestSubscriber<>();
+    assertFalse(ts.isCancelled());
+    ts.cancel();
+    assertTrue(ts.isCancelled());
+    ts.cancel();
+    assertTrue(ts.isCancelled());
   }
 
   @Test
@@ -1591,12 +1600,30 @@ public class TestSubscriberTest {
   }
 
   @Test
+  public void assertValueAtEmpty() {
+    TestSubscriber<Object> ts = new TestSubscriber<>();
+
+    Flux.empty().subscribe(ts);
+
+    assertThrows(AssertionError.class, () -> ts.assertValueAt(0, false), "No values");
+  }
+
+  @Test
   public void assertValueAtPredicateMatch() {
     TestSubscriber<Integer> ts = new TestSubscriber<>();
 
     Flux.just(1, 2).subscribe(ts);
 
     ts.assertValueAt(1, o -> o == 2);
+  }
+
+  @Test
+  public void assertValueAtMatch() {
+    TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+    Flux.just(1, 2).subscribe(ts);
+
+    ts.assertValueAt(1, 2);
   }
 
   @Test
@@ -1609,12 +1636,30 @@ public class TestSubscriberTest {
   }
 
   @Test
-  public void assertValueAtInvalidIndex() {
+  public void assertValueAtNoMatch() {
+    TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+    Flux.just(1, 2, 3).subscribe(ts);
+
+    assertThrows(AssertionError.class, () -> ts.assertValueAt(2, 1), "Value not present");
+  }
+
+  @Test
+  public void assertValueAtPredicateInvalidIndex() {
     TestSubscriber<Integer> ts = new TestSubscriber<>();
 
     Flux.just(1, 2).subscribe(ts);
 
     assertThrows(AssertionError.class, () -> ts.assertValueAt(2, o -> o == 1), "Invalid index: 2 (latch = 0, values = 2, errors = 0, completions = 1)");
+  }
+
+  @Test
+  public void assertValueAtInvalidIndex() {
+    TestSubscriber<Integer> ts = new TestSubscriber<>();
+
+    Flux.just(1, 2).subscribe(ts);
+
+    assertThrows(AssertionError.class, () -> ts.assertValueAt(2, 1), "Invalid index: 2 (latch = 0, values = 2, errors = 0, completions = 1)");
   }
 
   @Test

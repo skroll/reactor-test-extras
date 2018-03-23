@@ -1,19 +1,25 @@
 package org.skroll.reactor.test;
 
-import org.skroll.reactor.test.internal.util.VolatileSizeArrayList;
-import reactor.core.Disposable;
-import reactor.core.Exceptions;
-import reactor.core.publisher.Signal;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 
+import org.skroll.reactor.test.internal.util.VolatileSizeArrayList;
+
+import reactor.core.Disposable;
+import reactor.core.Exceptions;
+import reactor.core.publisher.Signal;
+
 /**
  * Base class with shared infrastructure to support TestSubscriber.
  * @param <T> the value type consumed
- * @param <U> the subclass of this BaseTestConsmer
+ * @param <U> the subclass of this BaseTestConsumer
  */
 public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> implements Disposable {
   /** The latch that indicates an onError or onComplete has been called. */
@@ -43,7 +49,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
    */
   protected boolean timeout;
 
-  public BaseTestConsumer() {
+  protected BaseTestConsumer() {
     this.values = new VolatileSizeArrayList<>();
     this.errors = new VolatileSizeArrayList<>();
     this.done = new CountDownLatch(1);
@@ -59,17 +65,17 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
 
   /**
    * Returns a shared list of received onNext values.
-   * <p>
-   * Note that accessing the items via certain methods of the {@link List}
+   *
+   * <p>Note that accessing the items via certain methods of the {@link List}
    * interface while the upstream is still actively emitting
    * more items may result in a {@code ConcurrentModificationException}.
-   * <p>
-   * The {@link List#size()} method will return the number of items
+   *
+   * <p>The {@link List#size()} method will return the number of items
    * already received by this TestSubscriber in a thread-safe
    * manner that can be read via {@link List#get(int)}) method
    * (index range of 0 to {@code List.size() - 1}).
-   * <p>
-   * A view of the returned List can be created via {@link List#subList(int, int)}
+   *
+   * <p>A view of the returned List can be created via {@link List#subList(int, int)}
    * by using the bounds 0 (inclusive) to {@link List#size()} (exclusive) which,
    * when accessed in a read-only fashion, should be also thread-safe and not throw any
    * {@code ConcurrentModificationException}.
@@ -81,17 +87,17 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
 
   /**
    * Returns a shared list of received onError exceptions.
-   * <p>
-   * Note that accessing the errors via certain methods of the {@link List}
+   *
+   * <p>Note that accessing the errors via certain methods of the {@link List}
    * interface while the upstream is still actively emitting
    * more items or errors may result in a {@code ConcurrentModificationException}.
-   * <p>
-   * The {@link List#size()} method will return the number of errors
+   *
+   * <p>The {@link List#size()} method will return the number of errors
    * already received by this TestSubscriber in a thread-safe
    * manner that can be read via {@link List#get(int)}) method
    * (index range of 0 to {@code List.size() - 1}).
-   * <p>
-   * A view of the returned List can be created via {@link List#subList(int, int)}
+   *
+   * <p>A view of the returned List can be created via {@link List#subList(int, int)}
    * by using the bounds 0 (inclusive) to {@link List#size()} (exclusive) which,
    * when accessed in a read-only fashion, should be also thread-safe and not throw any
    * {@code ConcurrentModificationException}.
@@ -135,6 +141,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
 
   /**
    * Fail with the given message and add the sequence of errors as suppressed ones.
+   *
    * <p>Note this is deliberately the only fail method. Most of the times an assertion
    * would fail but it is possible it was due to an exception somewhere. This construct
    * will capture those potential errors and report it along with the original failure.
@@ -192,11 +199,11 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
   @SuppressWarnings("unchecked")
   public final U await() throws InterruptedException {
     if (done.getCount() == 0) {
-      return (U)this;
+      return (U) this;
     }
 
     done.await();
-    return (U)this;
+    return (U) this;
   }
 
   /**
@@ -221,7 +228,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
    * @param unit the time unit of the waiting time
    * @return true if the TestSubscriber terminated, false if timeout or interrupt happened
    */
-  public final boolean awaitTerminalEvent(long duration, TimeUnit unit) {
+  public final boolean awaitTerminalEvent(final long duration, final TimeUnit unit) {
     try {
       return await(duration, unit);
     } catch (InterruptedException ex) {
@@ -247,6 +254,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
 
   /**
    * Awaits until the internal latch is counted down.
+   *
    * <p>If the wait times out or gets interrupted, the TestSubscriber is cancelled.
    * @param time the waiting time
    * @param unit the time unit of the waiting time
@@ -254,7 +262,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
    * @throws RuntimeException wrapping an InterruptedException if the wait is interrupted
    */
   @SuppressWarnings("unchecked")
-  public final U awaitDone(long time, TimeUnit unit) {
+  public final U awaitDone(final long time, final TimeUnit unit) {
     try {
       if (!done.await(time, unit)) {
         timeout = true;
@@ -264,7 +272,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
       dispose();
       throw Exceptions.propagate(ex);
     }
-    return (U)this;
+    return (U) this;
   }
 
   /**
@@ -319,7 +327,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
     @Override
     public abstract void run();
 
-    static void sleep(int millis) {
+    static void sleep(final int millis) {
       try {
         Thread.sleep(millis);
       } catch (InterruptedException ex) {
@@ -337,7 +345,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
    * @return this
    * @see #awaitCount(int, Runnable, long)
    */
-  public final U awaitCount(int atLeast) {
+  public final U awaitCount(final int atLeast) {
     return awaitCount(atLeast, TestWaitStrategy.SLEEP_10MS, 5000);
   }
 
@@ -353,7 +361,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
    * @return this
    * @see #awaitCount(int, Runnable, long)
    */
-  public final U awaitCount(int atLeast, Runnable waitStrategy) {
+  public final U awaitCount(final int atLeast, final Runnable waitStrategy) {
     return awaitCount(atLeast, waitStrategy, 5000);
   }
 
@@ -370,7 +378,8 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
    * @return this
    */
   @SuppressWarnings("unchecked")
-  public final U awaitCount(int atLeast, Runnable waitStrategy, long timeoutMillis) {
+  public final U awaitCount(final int atLeast, final Runnable waitStrategy,
+                            final long timeoutMillis) {
     long start = System.currentTimeMillis();
     for (;;) {
       if (timeoutMillis > 0L && System.currentTimeMillis() - start >= timeoutMillis) {
@@ -386,7 +395,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
 
       waitStrategy.run();
     }
-    return (U)this;
+    return (U) this;
   }
 
   // assertion methods
@@ -400,11 +409,10 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
     long c = completions;
     if (c == 0) {
       throw fail("Not completed");
-    } else
-    if (c > 1) {
+    } else if (c > 1) {
       throw fail("Multiple completions: " + c);
     }
-    return (U)this;
+    return (U) this;
   }
 
   /**
@@ -416,11 +424,10 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
     long c = completions;
     if (c == 1) {
       throw fail("Completed!");
-    } else
-    if (c > 1) {
+    } else if (c > 1) {
       throw fail("Multiple completions: " + c);
     }
-    return (U)this;
+    return (U) this;
   }
 
   /**
@@ -433,7 +440,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
     if (s != 0) {
       throw fail("Error(s) present: " + errors);
     }
-    return (U)this;
+    return (U) this;
   }
 
   /**
@@ -448,7 +455,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
    * @see #assertError(Class)
    * @see #assertError(Predicate)
    */
-  public final U assertError(Throwable error) {
+  public final U assertError(final Throwable error) {
     return assertError(x -> Objects.equals(x, error));
   }
 
@@ -459,8 +466,8 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
    * @return this;
    */
   @SuppressWarnings({ "unchecked", "rawtypes", "cast" })
-  public final U assertError(Class<? extends Throwable> errorClass) {
-    return (U)assertError(errorClass::isInstance);
+  public final U assertError(final Class<? extends Throwable> errorClass) {
+    return assertError(errorClass::isInstance);
   }
 
   /**
@@ -498,7 +505,8 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
     } else {
       throw fail("Error not present");
     }
-    return (U)this;
+
+    return (U) this;
   }
 
   /**
@@ -517,26 +525,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
     if (!Objects.equals(value, v)) {
       throw fail("Expected: " + valueAndClass(value) + ", Actual: " + valueAndClass(v));
     }
-    return (U)this;
-  }
 
-  /**
-   * Assert that this TestSubscriber did not receive an onNext value which is equal to
-   * the given value with respect to null-safe Object.equals.
-   *
-   * @param value the value to expect not being received
-   * @return this
-   */
-  @SuppressWarnings("unchecked")
-  public final U assertNever(final T value) {
-    int s = values.size();
-
-    for (int i = 0; i < s; i++) {
-      T v = this.values.get(i);
-      if (Objects.equals(v, value)) {
-        throw fail("Value at position " + i + " is equal to " + valueAndClass(value) + "; Expected them to be different");
-      }
-    }
     return (U) this;
   }
 
@@ -560,6 +549,27 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
   }
 
   /**
+   * Assert that this TestSubscriber did not receive an onNext value which is equal to
+   * the given value with respect to null-safe Object.equals.
+   *
+   * @param value the value to expect not being received
+   * @return this
+   */
+  @SuppressWarnings("unchecked")
+  public final U assertNever(final T value) {
+    int s = values.size();
+
+    for (int i = 0; i < s; i++) {
+      T v = this.values.get(i);
+      if (Objects.equals(v, value)) {
+        throw fail("Value at position " + i + " is equal to " + valueAndClass(value)
+            + "; Expected them to be different");
+      }
+    }
+    return (U) this;
+  }
+
+  /**
    * Asserts that this TestSubscriber did not receive any onNext value for which
    * the provided predicate returns true.
    *
@@ -568,20 +578,21 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
    * @return this
    */
   @SuppressWarnings("unchecked")
-  public final U assertNever(Predicate<? super T> valuePredicate) {
+  public final U assertNever(final Predicate<? super T> valuePredicate) {
     int s = values.size();
 
     for (int i = 0; i < s; i++) {
       T v = this.values.get(i);
       try {
         if (valuePredicate.test(v)) {
-          throw fail("Value at position " + i + " matches predicate " + valuePredicate.toString() + ", which was not expected.");
+          throw fail("Value at position " + i + " matches predicate " + valuePredicate.toString()
+              + ", which was not expected.");
         }
       } catch (Exception ex) {
         throw Exceptions.propagate(ex);
       }
     }
-    return (U)this;
+    return (U) this;
   }
 
   /**
@@ -592,8 +603,8 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
    * @return this
    */
   @SuppressWarnings("unchecked")
-  public final U assertValueAt(int index, T value) {
-    int s = values.size();
+  public final U assertValueAt(final int index, final T value) {
+    final int s = values.size();
     if (s == 0) {
       throw fail("No values");
     }
@@ -602,7 +613,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
       throw fail("Invalid index: " + index);
     }
 
-    T v = values.get(index);
+    final T v = values.get(index);
     if (!Objects.equals(value, v)) {
       throw fail("Expected: " + valueAndClass(value) + ", Actual: " + valueAndClass(v));
     }
@@ -642,7 +653,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
     if (!found) {
       throw fail("Value not present");
     }
-    return (U)this;
+    return (U) this;
   }
 
   /**
@@ -650,7 +661,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
    * @param o the object
    * @return the string representation
    */
-  public static String valueAndClass(Object o) {
+  public static String valueAndClass(final Object o) {
     if (o != null) {
       return o + " (class: " + o.getClass().getSimpleName() + ")";
     }
@@ -663,12 +674,12 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
    * @return this;
    */
   @SuppressWarnings("unchecked")
-  public final U assertValueCount(int count) {
-    int s = values.size();
+  public final U assertValueCount(final int count) {
+    final int s = values.size();
     if (s != count) {
       throw fail("Value counts differ; Expected: " + count + ", Actual: " + s);
     }
-    return (U)this;
+    return (U) this;
   }
 
   /**
@@ -686,7 +697,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
    * @see #assertValueSet(Collection)
    */
   @SuppressWarnings("unchecked")
-  public final U assertValues(T... values) {
+  public final U assertValues(final T... values) {
     int s = this.values.size();
     if (s != values.length) {
       throw fail("Value count differs; Expected: " + values.length + " " + Arrays.toString(values)
@@ -697,7 +708,8 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
       T v = this.values.get(i);
       T u = values[i];
       if (!Objects.equals(u, v)) {
-        throw fail("Values at position " + i + " differ; Expected: " + valueAndClass(u) + ", Actual: " + valueAndClass(v));
+        throw fail("Values at position " + i + " differ; Expected: " + valueAndClass(u)
+            + ", Actual: " + valueAndClass(v));
       }
     }
 
@@ -705,12 +717,13 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
   }
 
   /**
-   * Assert that the TestSubscriber received only the specified values in the specified order without terminating.
+   * Assert that the TestSubscriber received only the specified values in the specified order
+   * without terminating.
    * @param values the values expected
    * @return this;
    */
   @SuppressWarnings("unchecked")
-  public final U assertValuesOnly(T... values) {
+  public final U assertValuesOnly(final T... values) {
     return assertSubscribed()
         .assertValues(values)
         .assertNoErrors()
@@ -719,6 +732,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
 
   /**
    * Assert that the TestSubscriber received only the specified values in any order.
+   *
    * <p>This helps asserting when the order of the values is not guaranteed, i.e., when merging
    * asynchronous streams.
    *
@@ -726,26 +740,27 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
    * @return this;
    */
   @SuppressWarnings("unchecked")
-  public final U assertValueSet(Collection<? extends T> expected) {
+  public final U assertValueSet(final Collection<? extends T> expected) {
     if (expected.isEmpty()) {
       assertNoValues();
-      return (U)this;
+      return (U) this;
     }
     for (T v : this.values) {
       if (!expected.contains(v)) {
         throw fail("Value not in the expected collection: " + valueAndClass(v));
       }
     }
-    return (U)this;
+    return (U) this;
   }
 
   /**
-   * Assert that the TestSubscriber received only the specified sequence of values in the same order.
+   * Assert that the TestSubscriber received only the specified sequence of values in the
+   * same order.
    * @param sequence the sequence of expected values in order
    * @return this;
    */
   @SuppressWarnings("unchecked")
-  public final U assertValueSequence(Iterable<? extends T> sequence) {
+  public final U assertValueSequence(final Iterable<? extends T> sequence) {
     int i = 0;
     Iterator<T> actualIterator = values.iterator();
     Iterator<? extends T> expectedIterator = sequence.iterator();
@@ -763,7 +778,8 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
       T v = actualIterator.next();
 
       if (!Objects.equals(u, v)) {
-        throw fail("Values at position " + i + " differ; Expected: " + valueAndClass(u) + ", Actual: " + valueAndClass(v));
+        throw fail("Values at position " + i + " differ; Expected: " + valueAndClass(u)
+            + ", Actual: " + valueAndClass(v));
       }
       i++;
     }
@@ -774,7 +790,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
     if (expectedNext) {
       throw fail("Fewer values received than expected (" + i + ")");
     }
-    return (U)this;
+    return (U) this;
   }
 
   /**
@@ -798,7 +814,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
     if (c != 0 && s != 0) {
       throw fail("Terminated with multiple completions and errors: " + c);
     }
-    return (U)this;
+    return (U) this;
   }
 
   /**
@@ -810,7 +826,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
     if (done.getCount() == 0) {
       throw fail("Subscriber terminated!");
     }
-    return (U)this;
+    return (U) this;
   }
 
   /**
@@ -819,12 +835,11 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
    * @return this
    */
   @SuppressWarnings("unchecked")
-  public final U assertErrorMessage(String message) {
+  public final U assertErrorMessage(final String message) {
     int s = errors.size();
     if (s == 0) {
       throw fail("No errors");
-    } else
-    if (s == 1) {
+    } else if (s == 1) {
       Throwable e = errors.get(0);
       String errorMessage = e.getMessage();
       if (!Objects.equals(message, errorMessage)) {
@@ -833,7 +848,8 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
     } else {
       throw fail("Multiple errors");
     }
-    return (U)this;
+
+    return (U) this;
   }
 
   /**
@@ -845,13 +861,13 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
    */
   @SuppressWarnings({ "rawtypes", "unchecked" })
   public final List<List<Object>> getEvents() {
-    List<List<Object>> result = new ArrayList<List<Object>>();
+    List<List<Object>> result = new ArrayList<>();
 
-    result.add((List)values());
+    result.add((List) values());
 
-    result.add((List)errors());
+    result.add((List) errors());
 
-    List<Object> completeList = new ArrayList<Object>();
+    List<Object> completeList = new ArrayList<>();
     for (long i = 0; i < completions; i++) {
       completeList.add(Signal.complete());
     }
@@ -881,7 +897,8 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
    * @see #assertFailure(Predicate, Object...)
    * @see #assertFailureAndMessage(Class, String, Object...)
    */
-  public final U assertResult(T... values) {
+  @SafeVarargs
+  public final U assertResult(final T... values) {
     return assertSubscribed()
         .assertValues(values)
         .assertNoErrors()
@@ -895,7 +912,8 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
    * @param values the expected values, asserted in order
    * @return this
    */
-  public final U assertFailure(Class<? extends Throwable> error, T... values) {
+  @SafeVarargs
+  public final U assertFailure(final Class<? extends Throwable> error, final T... values) {
     return assertSubscribed()
         .assertValues(values)
         .assertError(error)
@@ -911,7 +929,8 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
    * @param values the expected values, asserted in order
    * @return this
    */
-  public final U assertFailure(Predicate<Throwable> errorPredicate, T... values) {
+  @SafeVarargs
+  public final U assertFailure(final Predicate<Throwable> errorPredicate, final T... values) {
     return assertSubscribed()
         .assertValues(values)
         .assertError(errorPredicate)
@@ -927,8 +946,9 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
    * @param values the expected values, asserted in order
    * @return this
    */
-  public final U assertFailureAndMessage(Class<? extends Throwable> error,
-                                         String message, T... values) {
+  @SafeVarargs
+  public final U assertFailureAndMessage(final Class<? extends Throwable> error,
+                                         final String message, final T... values) {
     return assertSubscribed()
         .assertValues(values)
         .assertError(error)
@@ -954,12 +974,13 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
    * @return this
    */
   @SuppressWarnings("unchecked")
-  public final U withTag(CharSequence tag) {
+  public final U withTag(final CharSequence tag) {
     this.tag = tag;
-    return (U)this;
+    return (U) this;
   }
 
   /**
+   * Whether or not a timeout-based await method has timed out.
    * @return true if one of the timeout-based await methods has timed out.
    * @see #clearTimeout()
    * @see #assertTimeout()
@@ -977,7 +998,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
   @SuppressWarnings("unchecked")
   public final U clearTimeout() {
     timeout = false;
-    return (U)this;
+    return (U) this;
   }
 
   /**
@@ -989,7 +1010,7 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
     if (!timeout) {
       throw fail("No timeout?!");
     }
-    return (U)this;
+    return (U) this;
   }
 
   /**
@@ -1001,6 +1022,6 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
     if (timeout) {
       throw fail("Timeout?!");
     }
-    return (U)this;
+    return (U) this;
   }
 }

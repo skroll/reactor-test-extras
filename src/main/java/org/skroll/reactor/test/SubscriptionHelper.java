@@ -1,10 +1,10 @@
 package org.skroll.reactor.test;
 
-import org.reactivestreams.Subscription;
-import reactor.core.publisher.Operators;
-
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+
+import org.reactivestreams.Subscription;
+import reactor.core.publisher.Operators;
 
 final class SubscriptionHelper {
   /**
@@ -12,10 +12,10 @@ final class SubscriptionHelper {
    * and cancels the previous subscription if any.
    * @param field the target field to dispose the contents of
    * @return true if the swap from the non-cancelled instance to the
-   * common cancelled instance happened in the caller's thread (allows
-   * further one-time actions).
+   *     common cancelled instance happened in the caller's thread (allows
+   *     further one-time actions).
    */
-  public static boolean cancel(AtomicReference<Subscription> field) {
+  public static boolean cancel(final AtomicReference<Subscription> field) {
     Subscription current = field.get();
     if (current != Operators.cancelledSubscription()) {
       current = field.getAndSet(Operators.cancelledSubscription());
@@ -36,7 +36,8 @@ final class SubscriptionHelper {
    * @param requested the current requested amount
    * @param n the request amount, positive (verified)
    */
-  public static void deferredRequest(AtomicReference<Subscription> field, AtomicLong requested, long n) {
+  public static void deferredRequest(final AtomicReference<Subscription> field,
+      final AtomicLong requested, final long n) {
     Subscription s = field.get();
     if (s != null) {
       s.request(n);

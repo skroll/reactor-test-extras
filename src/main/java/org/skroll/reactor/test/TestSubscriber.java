@@ -1,14 +1,14 @@
 package org.skroll.reactor.test;
 
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
+
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactor.core.Disposable;
 import reactor.core.Exceptions;
 import reactor.core.publisher.Operators;
-
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
 
 /**
  * A subscriber that records events and allows making assertions about them.
@@ -23,7 +23,8 @@ import java.util.function.Consumer;
  *
  * @param <T> the value type
  */
-public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>> implements Subscriber<T>, Subscription, Disposable {
+public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>>
+    implements Subscriber<T>, Subscription, Disposable {
   /** The actual subscriber to forward events to. */
   private final Subscriber<? super T> actual;
 
@@ -51,7 +52,7 @@ public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>> im
    * @param initialRequested the initial requested amount
    * @return the new TestSubscriber instance.
    */
-  public static <T> TestSubscriber<T> create(long initialRequested) {
+  public static <T> TestSubscriber<T> create(final long initialRequested) {
     return new TestSubscriber<>(initialRequested);
   }
 
@@ -61,7 +62,7 @@ public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>> im
    * @param delegate the actual Subscriber to forward events to
    * @return the new TestSubscriber instance
    */
-  public static <T> TestSubscriber<T> create(Subscriber<? super T> delegate) {
+  public static <T> TestSubscriber<T> create(final Subscriber<? super T> delegate) {
     return new TestSubscriber<>(delegate);
   }
 
@@ -74,11 +75,12 @@ public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>> im
 
   /**
    * Constructs a non-forwarding TestSubscriber with the specified initial request value.
+   *
    * <p>The TestSubscriber doesn't validate the initialRequest value so one can
    * test sources with invalid values as well.
    * @param initialRequest the initial request value
    */
-  public TestSubscriber(long initialRequest) {
+  public TestSubscriber(final long initialRequest) {
     this(EmptySubscriber.INSTANCE, initialRequest);
   }
 
@@ -86,24 +88,25 @@ public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>> im
    * Constructs a forwarding TestSubscriber but leaves the requesting to the wrapped subscriber.
    * @param actual the actual Subscriber to forward events to
    */
-  public TestSubscriber(Subscriber<? super T> actual) {
+  public TestSubscriber(final Subscriber<? super T> actual) {
     this(actual, Long.MAX_VALUE);
   }
 
   /**
    * Constructs a forwarding TestSubscriber with the specified initial request value.
+   *
    * <p>The TestSubscriber doesn't validate the initialRequest value so one can
    * test sources with invalid values as well.
    * @param actual the actual Subscriber to forward events to
    * @param initialRequest the initial request value
    */
-  public TestSubscriber(Subscriber<? super T> actual, long initialRequest) {
+  public TestSubscriber(final Subscriber<? super T> actual, final long initialRequest) {
     super();
     if (initialRequest < 0) {
       throw new IllegalArgumentException("Negative initial request not allowed");
     }
     this.actual = actual;
-    this.subscription = new AtomicReference<Subscription>();
+    this.subscription = new AtomicReference<>();
     this.missedRequested = new AtomicLong(initialRequest);
   }
 
@@ -142,7 +145,7 @@ public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>> im
   }
 
   @Override
-  public void onNext(T t) {
+  public void onNext(final T t) {
     if (!checkSubscriptionOnce) {
       checkSubscriptionOnce = true;
       if (subscription.get() == null) {
@@ -161,7 +164,7 @@ public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>> im
   }
 
   @Override
-  public void onError(Throwable t) {
+  public void onError(final Throwable t) {
     if (!checkSubscriptionOnce) {
       checkSubscriptionOnce = true;
       if (subscription.get() == null) {
@@ -202,7 +205,7 @@ public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>> im
   }
 
   @Override
-  public final void request(long n) {
+  public final void request(final long n) {
     SubscriptionHelper.deferredRequest(subscription, missedRequested, n);
   }
 
@@ -264,8 +267,7 @@ public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>> im
   public final TestSubscriber<T> assertNotSubscribed() {
     if (subscription.get() != null) {
       throw fail("Subscribed!");
-    } else
-    if (!errors.isEmpty()) {
+    } else if (!errors.isEmpty()) {
       throw fail("Not subscribed but errors found");
     }
     return this;
@@ -277,7 +279,7 @@ public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>> im
    * @param check the check consumer to run
    * @return this
    */
-  public final TestSubscriber<T> assertOf(Consumer<? super TestSubscriber<T>> check) {
+  public final TestSubscriber<T> assertOf(final Consumer<? super TestSubscriber<T>> check) {
     try {
       check.accept(this);
     } catch (AssertionError e) {
@@ -290,12 +292,11 @@ public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>> im
 
   /**
    * Calls {@link #request(long)} and returns this.
-   * <p>History: 2.0.1 - experimental
+   *
    * @param n the request amount
    * @return this
-   * @since 2.1
    */
-  public final TestSubscriber<T> requestMore(long n) {
+  public final TestSubscriber<T> requestMore(final long n) {
     request(n);
     return this;
   }
@@ -307,15 +308,15 @@ public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>> im
     INSTANCE;
 
     @Override
-    public void onSubscribe(Subscription s) {
+    public void onSubscribe(final Subscription s) {
     }
 
     @Override
-    public void onNext(Object t) {
+    public void onNext(final Object t) {
     }
 
     @Override
-    public void onError(Throwable t) {
+    public void onError(final Throwable t) {
     }
 
     @Override
