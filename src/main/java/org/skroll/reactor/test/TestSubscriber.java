@@ -1,7 +1,7 @@
 package org.skroll.reactor.test;
 
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicLongFieldUpdater;
+import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 import java.util.function.Consumer;
 
 import org.reactivestreams.Subscriber;
@@ -32,10 +32,17 @@ public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>>
   private volatile boolean cancelled;
 
   /** Holds the current subscription if any. */
-  private final AtomicReference<Subscription> subscription;
+  private volatile Subscription subscription;
+
+  private static final AtomicReferenceFieldUpdater<TestSubscriber, Subscription> SUBSCRIPTION =
+      AtomicReferenceFieldUpdater.newUpdater(
+          TestSubscriber.class, Subscription.class, "subscription");
 
   /** Holds the requested amount until a subscription arrives. */
-  private final AtomicLong missedRequested;
+  private volatile long missedRequested;
+
+  private static final AtomicLongFieldUpdater<TestSubscriber> MISSED_REQUESTED =
+      AtomicLongFieldUpdater.newUpdater(TestSubscriber.class, "missedRequested");
 
   /**
    * Creates a TestSubscriber with Long.MAX_VALUE initial request.
@@ -106,8 +113,7 @@ public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>>
       throw new IllegalArgumentException("Negative initial request not allowed");
     }
     this.actual = actual;
-    this.subscription = new AtomicReference<>();
-    this.missedRequested = new AtomicLong(initialRequest);
+    MISSED_REQUESTED.set(this, initialRequest);
   }
 
   @SuppressWarnings("unchecked")
@@ -119,9 +125,10 @@ public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>>
       errors.add(new NullPointerException("onSubscribe received a null Subscription"));
       return;
     }
-    if (!subscription.compareAndSet(null, s)) {
+
+    if (!SUBSCRIPTION.compareAndSet(this, null, s)) {
       s.cancel();
-      if (subscription.get() != Operators.cancelledSubscription()) {
+      if (SUBSCRIPTION.get(this) != Operators.cancelledSubscription()) {
         errors.add(new IllegalStateException("onSubscribe received multiple subscriptions: " + s));
       }
       return;
@@ -129,7 +136,7 @@ public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>>
 
     actual.onSubscribe(s);
 
-    long mr = missedRequested.getAndSet(0L);
+    long mr = MISSED_REQUESTED.getAndSet(this, 0L);
     if (mr != 0L) {
       s.request(mr);
     }
@@ -148,7 +155,7 @@ public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>>
   public void onNext(final T t) {
     if (!checkSubscriptionOnce) {
       checkSubscriptionOnce = true;
-      if (subscription.get() == null) {
+      if (SUBSCRIPTION.get(this) == null) {
         errors.add(new IllegalStateException("onSubscribe not called in proper order"));
       }
     }
@@ -167,7 +174,7 @@ public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>>
   public void onError(final Throwable t) {
     if (!checkSubscriptionOnce) {
       checkSubscriptionOnce = true;
-      if (subscription.get() == null) {
+      if (SUBSCRIPTION.get(this) == null) {
         errors.add(new NullPointerException("onSubscribe not called in proper order"));
       }
     }
@@ -190,7 +197,7 @@ public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>>
   public void onComplete() {
     if (!checkSubscriptionOnce) {
       checkSubscriptionOnce = true;
-      if (subscription.get() == null) {
+      if (SUBSCRIPTION.get(this) == null) {
         errors.add(new IllegalStateException("onSubscribe not called in proper order"));
       }
     }
@@ -206,14 +213,14 @@ public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>>
 
   @Override
   public final void request(final long n) {
-    SubscriptionHelper.deferredRequest(subscription, missedRequested, n);
+    SubscriptionHelper.deferredRequest(SUBSCRIPTION, MISSED_REQUESTED, this, n);
   }
 
   @Override
   public final void cancel() {
     if (!cancelled) {
       cancelled = true;
-      SubscriptionHelper.cancel(subscription);
+      Operators.set(SUBSCRIPTION, this, Operators.cancelledSubscription());
     }
   }
 
@@ -242,7 +249,7 @@ public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>>
    * @return true if this TestSubscriber received a subscription
    */
   public final boolean hasSubscription() {
-    return subscription.get() != null;
+    return SUBSCRIPTION.get(this) != null;
   }
 
   // assertion methods
@@ -253,7 +260,7 @@ public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>>
    */
   @Override
   public final TestSubscriber<T> assertSubscribed() {
-    if (subscription.get() == null) {
+    if (SUBSCRIPTION.get(this) == null) {
       throw fail("Not subscribed!");
     }
     return this;
@@ -265,7 +272,7 @@ public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>>
    */
   @Override
   public final TestSubscriber<T> assertNotSubscribed() {
-    if (subscription.get() != null) {
+    if (SUBSCRIPTION.get(this) != null) {
       throw fail("Subscribed!");
     } else if (!errors.isEmpty()) {
       throw fail("Not subscribed but errors found");

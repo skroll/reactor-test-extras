@@ -9,6 +9,8 @@ import reactor.core.CoreSubscriber;
 import reactor.core.publisher.EmitterProcessor;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Operators;
+import reactor.core.publisher.Signal;
+import reactor.core.publisher.SignalType;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
@@ -16,6 +18,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -25,6 +28,54 @@ import static org.mockito.Mockito.times;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class TestSubscriberTest {
+  @Test
+  public void testValuesList() {
+    TestSubscriber<Integer> ts = new TestSubscriber<>();
+    Flux.just(1, 2, 3).subscribe(ts);
+    List<Integer> values = ts.values();
+    assertEquals(values.size(), 3);
+    assertEquals(values.get(0).intValue(), 1);
+    assertEquals(values.get(1).intValue(), 2);
+    assertEquals(values.get(2).intValue(), 3);
+  }
+
+  @Test
+  public void testEventsList() {
+    TestSubscriber<Integer> ts = new TestSubscriber<>();
+    Flux.just(1, 2, 3).subscribe(ts);
+    List<List<Object>> events = ts.getEvents();
+    assertEquals(events.size(), 3);
+
+    List<Object> values = events.get(0);
+    assertEquals(3, values.size());
+    assertEquals(1, values.get(0));
+    assertEquals(2, values.get(1));
+    assertEquals(3, values.get(2));
+
+    List<Object> errors = events.get(1);
+    assertEquals(0, errors.size());
+
+    List<Object> completions = events.get(2);
+    assertEquals(1, completions.size());
+    final Signal<?> signal = (Signal<?>) completions.get(0);
+
+    assertEquals(SignalType.ON_COMPLETE, signal.getType());
+  }
+
+  @Test
+  public void testAssertNever() {
+    TestSubscriber<Integer> ts = new TestSubscriber<>();
+    Flux.just(1, 2, 3).subscribe(ts);
+    assertThrows(AssertionError.class, () -> ts.assertNever(2));
+  }
+
+  @Test
+  public void testValueCount() {
+    TestSubscriber<Integer> ts = new TestSubscriber<>();
+    Flux.just(1, 2, 3).subscribe(ts);
+    assertEquals(3, ts.valueCount());
+  }
+
   @Test
   public void testInvalidInitialRequest() {
     assertThrows(IllegalArgumentException.class, () -> new TestSubscriber<Integer>(-1));
@@ -622,7 +673,7 @@ public class TestSubscriberTest {
   }
 
   @Test
-  public void testValueCount() {
+  public void testAssertValueCount() {
     TestSubscriber<Integer> ts = new TestSubscriber<>();
     ts.onNext(1);
     ts.onNext(2);
