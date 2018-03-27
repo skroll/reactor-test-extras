@@ -273,25 +273,15 @@ public class TestSubscriberTest {
   public void testNoErrors() {
     TestSubscriber<Integer> ts = new TestSubscriber<>();
     ts.onError(new TestException());
-    try {
-      ts.assertNoErrors();
-    } catch (AssertionError ex) {
-      // expected
-      return;
-    }
-    fail("Error present but no assertion error!");
+
+    assertThrows(AssertionError.class, ts::assertNoErrors);
   }
 
   @Test
   public void testNotCompleted() {
     TestSubscriber<Integer> ts = new TestSubscriber<>();
-    try {
-      ts.assertComplete();
-    } catch (AssertionError ex) {
-      // expected
-      return;
-    }
-    fail("Not completed and no assertion error!");
+
+    assertThrows(AssertionError.class, ts::assertComplete);
   }
 
   @Test
@@ -299,26 +289,14 @@ public class TestSubscriberTest {
     TestSubscriber<Integer> ts = new TestSubscriber<>();
     ts.onComplete();
     ts.onComplete();
-    try {
-      ts.assertComplete();
-    } catch (AssertionError ex) {
-      // expected
-      return;
-    }
-    fail("Multiple completions and no assertion error!");
+    assertThrows(AssertionError.class, ts::assertComplete);
   }
 
   @Test
   public void testCompleted() {
     TestSubscriber<Integer> ts = new TestSubscriber<>();
     ts.onComplete();
-    try {
-      ts.assertNotComplete();
-    } catch (AssertionError ex) {
-      // expected
-      return;
-    }
-    fail("Completed and no assertion error!");
+    assertThrows(AssertionError.class, ts::assertNotComplete);
   }
 
   @Test
@@ -326,13 +304,7 @@ public class TestSubscriberTest {
     TestSubscriber<Integer> ts = new TestSubscriber<>();
     ts.onComplete();
     ts.onComplete();
-    try {
-      ts.assertNotComplete();
-    } catch (AssertionError ex) {
-      // expected
-      return;
-    }
-    fail("Multiple completions and no assertion error!");
+    assertThrows(AssertionError.class, ts::assertNotComplete);
   }
 
 //  @Test
@@ -428,104 +400,53 @@ public class TestSubscriberTest {
   public void testDifferentError() {
     TestSubscriber<Integer> ts = new TestSubscriber<>();
     ts.onError(new TestException());
-    try {
-      ts.assertError(new TestException());
-    } catch (AssertionError ex) {
-      // expected
-      return;
-    }
-    fail("Different Error present but no assertion error!");
+    assertThrows(AssertionError.class, () -> ts.assertError(new TestException()));
   }
 
   @Test
   public void testDifferentError2() {
     TestSubscriber<Integer> ts = new TestSubscriber<>();
     ts.onError(new RuntimeException());
-    try {
-      ts.assertError(new TestException());
-    } catch (AssertionError ex) {
-      // expected
-      return;
-    }
-    fail("Different Error present but no assertion error!");
+    assertThrows(AssertionError.class, () -> ts.assertError(new TestException()));
   }
 
   @Test
   public void testDifferentError3() {
     TestSubscriber<Integer> ts = new TestSubscriber<>();
     ts.onError(new RuntimeException());
-    try {
-      ts.assertError(TestException.class);
-    }
-    catch (AssertionError ex) {
-      // expected
-      return;
-    }
-    fail("Different Error present but no assertion error!");
+    assertThrows(AssertionError.class, () -> ts.assertError(TestException.class));
   }
 
   @Test
   public void testDifferentError4() {
     TestSubscriber<Integer> ts = new TestSubscriber<>();
     ts.onError(new RuntimeException());
-    try {
-      ts.assertError(__ -> false);
-    } catch (AssertionError ex) {
-      // expected
-      return;
-    }
-    fail("Different Error present but no assertion error!");
+    assertThrows(AssertionError.class, () -> ts.assertError(__ -> false));
   }
 
   @Test
   public void testErrorInPredicate() {
     TestSubscriber<Integer> ts = new TestSubscriber<>();
     ts.onError(new RuntimeException());
-    try {
-      ts.assertError(throwable -> {
-        throw new TestException();
-      });
-    } catch (TestException ex) {
-      // expected
-      return;
-    }
-    fail("Error in predicate but not thrown!");
+    assertThrows(TestException.class, () -> ts.assertError(__ -> { throw new TestException(); }));
   }
 
   @Test
   public void testNoError() {
     TestSubscriber<Integer> ts = new TestSubscriber<>();
-    try {
-      ts.assertError(TestException.class);
-    } catch (AssertionError ex) {
-      // expected
-      return;
-    }
-    fail("No present but no assertion error!");
+    assertThrows(AssertionError.class, () -> ts.assertError(TestException.class));
   }
 
   @Test
   public void testNoError2() {
     TestSubscriber<Integer> ts = new TestSubscriber<>();
-    try {
-      ts.assertError(new TestException());
-    } catch (AssertionError ex) {
-      // expected
-      return;
-    }
-    fail("No present but no assertion error!");
+    assertThrows(AssertionError.class, () -> ts.assertError(new TestException()));
   }
 
   @Test
   public void testNoError3() {
     TestSubscriber<Integer> ts = new TestSubscriber<>();
-    try {
-      ts.assertError(__ -> true);
-    } catch (AssertionError ex) {
-      // expected
-      return;
-    }
-    fail("No present but no assertion error!");
+    assertThrows(AssertionError.class, () -> ts.assertError(__ -> true));
   }
 
   @Test
@@ -599,13 +520,7 @@ public class TestSubscriberTest {
     TestSubscriber<Integer> ts = new TestSubscriber<>();
 
     ts.onComplete();
-
-    try {
-      ts.assertNotTerminated();
-      fail("Failed to report there were terminal event(s)!");
-    } catch (AssertionError ex) {
-      // expected
-    }
+    assertThrows(AssertionError.class, ts::assertNotTerminated);
   }
 
   @Test
@@ -613,13 +528,7 @@ public class TestSubscriberTest {
     TestSubscriber<Integer> ts = new TestSubscriber<>();
 
     ts.onError(new TestException());
-
-    try {
-      ts.assertNotTerminated();
-      fail("Failed to report there were terminal event(s)!");
-    } catch (AssertionError ex) {
-      // expected
-    }
+    assertThrows(AssertionError.class, ts::assertNotTerminated);
   }
 
   @Test
@@ -628,13 +537,7 @@ public class TestSubscriberTest {
 
     ts.onComplete();
     ts.onError(new TestException());
-
-    try {
-      ts.assertNotTerminated();
-      fail("Failed to report there were terminal event(s)!");
-    } catch (AssertionError ex) {
-      // expected
-    }
+    assertThrows(AssertionError.class, ts::assertNotTerminated);
   }
 //
 //  @Test
@@ -663,13 +566,7 @@ public class TestSubscriberTest {
   public void testNoValues() {
     TestSubscriber<Integer> ts = new TestSubscriber<>();
     ts.onNext(1);
-
-    try {
-      ts.assertNoValues();
-      fail("Failed to report there were values!");
-    } catch (AssertionError ex) {
-      // expected
-    }
+    assertThrows(AssertionError.class, ts::assertNoValues);
   }
 
   @Test
@@ -677,13 +574,7 @@ public class TestSubscriberTest {
     TestSubscriber<Integer> ts = new TestSubscriber<>();
     ts.onNext(1);
     ts.onNext(2);
-
-    try {
-      ts.assertValueCount(3);
-      fail("Failed to report there were values!");
-    } catch (AssertionError ex) {
-      // expected
-    }
+    assertThrows(AssertionError.class, () -> ts.assertValueCount(3));
   }
 
   @Test
@@ -696,12 +587,7 @@ public class TestSubscriberTest {
     };
     TestSubscriber<Integer> ts = new TestSubscriber<>(ts0);
 
-    try {
-      ts.onComplete();
-    } catch (TestException ex) {
-      // expected
-    }
-
+    assertThrows(TestException.class, ts::onComplete);
     ts.awaitTerminalEvent();
   }
 
@@ -714,13 +600,7 @@ public class TestSubscriberTest {
       }
     };
     TestSubscriber<Integer> ts = new TestSubscriber<>(ts0);
-
-    try {
-      ts.onError(new RuntimeException());
-    } catch (TestException ex) {
-      // expected
-    }
-
+    assertThrows(TestException.class, () -> ts.onError(new RuntimeException()));
     ts.awaitTerminalEvent();
   }
 
@@ -737,12 +617,7 @@ public class TestSubscriberTest {
 
     ts.onSubscribe(new TestHelper.BooleanSubscription());
 
-    try {
-      ts.assertNotSubscribed();
-      throw new RuntimeException("Should have thrown");
-    } catch (AssertionError ex) {
-      // expected
-    }
+    assertThrows(AssertionError.class, ts::assertNotSubscribed);
 
     assertTrue(ts.hasSubscription());
 
@@ -762,145 +637,49 @@ public class TestSubscriberTest {
 
     assertSame(Thread.currentThread(), ts.lastThread());
 
-    try {
-      ts.assertNoValues();
-      throw new RuntimeException("Should have thrown");
-    } catch (AssertionError exc) {
-      // expected
-    }
-
-    try {
-      ts.assertValueCount(0);
-      throw new RuntimeException("Should have thrown");
-    } catch (AssertionError exc) {
-      // expected
-    }
+    assertThrows(AssertionError.class, ts::assertNoValues);
+    assertThrows(AssertionError.class, () -> ts.assertValueCount(0));
 
     ts.assertValueSequence(Collections.singletonList(1));
 
-    try {
-      ts.assertValueSequence(Collections.singletonList(2));
-      throw new RuntimeException("Should have thrown");
-    } catch (AssertionError exc) {
-      // expected
-    }
+    assertThrows(AssertionError.class, () -> ts.assertValueSequence(Collections.singletonList(2)));
 
     ts.assertValueSet(Collections.singleton(1));
 
-    try {
-      ts.assertValueSet(Collections.singleton(2));
-      throw new RuntimeException("Should have thrown");
-    } catch (AssertionError exc) {
-      // expected
-    }
-
+    assertThrows(AssertionError.class, () -> ts.assertValueSet(Collections.singleton(2)));
   }
 
   @Test
   public void assertError() {
     TestSubscriber<Integer> ts = TestSubscriber.create();
 
-    try {
-      ts.assertError(TestException.class);
-      throw new RuntimeException("Should have thrown");
-    } catch (AssertionError ex) {
-      // expected
-    }
-
-    try {
-      ts.assertError(new TestException());
-      throw new RuntimeException("Should have thrown");
-    } catch (AssertionError ex) {
-      // expected
-    }
-
-    try {
-      ts.assertErrorMessage("");
-      throw new RuntimeException("Should have thrown");
-    } catch (AssertionError exc) {
-      // expected
-    }
-
-    try {
-      ts.assertError(__ -> true);
-      throw new RuntimeException("Should have thrown");
-    } catch (AssertionError ex) {
-      // expected
-    }
-
-    try {
-      ts.assertSubscribed();
-      throw new RuntimeException("Should have thrown");
-    } catch (AssertionError exc) {
-      // expected
-    }
-
-    try {
-      ts.assertTerminated();
-      throw new RuntimeException("Should have thrown");
-    } catch (AssertionError exc) {
-      // expected
-    }
+    assertThrows(AssertionError.class, () -> ts.assertError(TestException.class));
+    assertThrows(AssertionError.class, () -> ts.assertError(new TestException()));
+    assertThrows(AssertionError.class, () -> ts.assertErrorMessage(""));
+    assertThrows(AssertionError.class, () -> ts.assertError(__ -> true));
+    assertThrows(AssertionError.class, () -> ts.assertSubscribed());
+    assertThrows(AssertionError.class, () -> ts.assertTerminated());
 
     ts.onSubscribe(new TestHelper.BooleanSubscription());
-
     ts.assertSubscribed();
-
     ts.assertNoErrors();
 
     TestException ex = new TestException("Forced failure");
-
     ts.onError(ex);
-
     ts.assertError(ex);
-
     ts.assertError(TestException.class);
-
     ts.assertErrorMessage("Forced failure");
-
     ts.assertError(__ -> true);
-
     ts.assertError(t -> t.getMessage() != null && t.getMessage().contains("Forced"));
 
-    try {
-      ts.assertErrorMessage("");
-      throw new RuntimeException("Should have thrown");
-    } catch (AssertionError exc) {
-      // expected
-    }
-
-    try {
-      ts.assertError(new RuntimeException());
-      throw new RuntimeException("Should have thrown");
-    } catch (AssertionError exc) {
-      // expected
-    }
-
-    try {
-      ts.assertError(IOException.class);
-      throw new RuntimeException("Should have thrown");
-    } catch (AssertionError exc) {
-      // expected
-    }
-
-    try {
-      ts.assertNoErrors();
-      throw new RuntimeException("Should have thrown");
-    } catch (AssertionError exc) {
-      // expected
-    }
-
-    try {
-      ts.assertError(__ -> false);
-      throw new RuntimeException("Should have thrown");
-    } catch (AssertionError exc) {
-      // expected
-    }
+    assertThrows(AssertionError.class, () -> ts.assertErrorMessage(""));
+    assertThrows(AssertionError.class, () -> ts.assertError(new RuntimeException()));
+    assertThrows(AssertionError.class, () -> ts.assertError(IOException.class));
+    assertThrows(AssertionError.class, () -> ts.assertNoErrors());
+    assertThrows(AssertionError.class, () -> ts.assertError(__ -> false));
 
     ts.assertTerminated();
-
     ts.assertValueCount(0);
-
     ts.assertNoValues();
   }
 
@@ -993,12 +772,7 @@ public class TestSubscriberTest {
 
     ts.onError(null);
 
-    try {
-      ts.assertNotTerminated();
-      throw new RuntimeException("Should have thrown!");
-    } catch (AssertionError ex) {
-      // expected
-    }
+    assertThrows(AssertionError.class, ts::assertNotTerminated);
   }
 
   @Test
@@ -1006,21 +780,10 @@ public class TestSubscriberTest {
     TestSubscriber<Integer> ts = TestSubscriber.create();
 
     ts.assertOf(TestSubscriber::assertNotSubscribed);
-
-    try {
-      ts.assertOf(TestSubscriber::assertSubscribed);
-      throw new RuntimeException("Should have thrown");
-    } catch (AssertionError ex) {
-      // expected
-    }
-    try {
-      ts.assertOf(f -> {
-        throw new IllegalArgumentException();
-      });
-      throw new RuntimeException("Should have thrown");
-    } catch (IllegalArgumentException ex) {
-      // expected
-    }
+    assertThrows(AssertionError.class, () -> ts.assertOf(TestSubscriber::assertSubscribed));
+    assertThrows(IllegalArgumentException.class, () ->
+        ts.assertOf(__ -> { throw new IllegalArgumentException(); })
+    );
   }
 
   @Test
@@ -1032,32 +795,13 @@ public class TestSubscriberTest {
     ts.onComplete();
 
     ts.assertResult();
-
-    try {
-      ts.assertResult(1);
-      throw new RuntimeException("Should have thrown");
-    } catch (AssertionError ex) {
-      // expected
-    }
+    assertThrows(AssertionError.class, () -> ts.assertResult(1));
 
     ts.onNext(1);
 
     ts.assertResult(1);
-
-    try {
-      ts.assertResult(2);
-      throw new RuntimeException("Should have thrown");
-    } catch (AssertionError ex) {
-      // expected
-    }
-
-    try {
-      ts.assertResult();
-      throw new RuntimeException("Should have thrown");
-    } catch (AssertionError ex) {
-      // expected
-    }
-
+    assertThrows(AssertionError.class, () -> ts.assertResult(2));
+    assertThrows(AssertionError.class, () -> ts.assertResult());
   }
 
   @Test
@@ -1164,37 +908,13 @@ public class TestSubscriberTest {
 
     ts.onComplete();
 
-    try {
-      ts.assertNotComplete();
-      throw new RuntimeException("Should have thrown");
-    } catch (Throwable ex) {
-      // expected
-    }
-
+    assertThrows(Throwable.class, ts::assertNotComplete);
     ts.assertTerminated();
 
     ts.onComplete();
-
-    try {
-      ts.assertComplete();
-      throw new RuntimeException("Should have thrown");
-    } catch (Throwable ex) {
-      // expected
-    }
-
-    try {
-      ts.assertTerminated();
-      throw new RuntimeException("Should have thrown");
-    } catch (Throwable ex) {
-      // expected
-    }
-
-    try {
-      ts.assertNotComplete();
-      throw new RuntimeException("Should have thrown");
-    } catch (Throwable ex) {
-      // expected
-    }
+    assertThrows(Throwable.class, ts::assertComplete);
+    assertThrows(Throwable.class, ts::assertTerminated);
+    assertThrows(Throwable.class, ts::assertNotComplete);
   }
 
   @Test
@@ -1202,33 +922,15 @@ public class TestSubscriberTest {
     TestSubscriber<Integer> ts = TestSubscriber.create();
 
     ts.onSubscribe(new TestHelper.BooleanSubscription());
-
-    try {
-      ts.assertValue(1);
-      throw new RuntimeException("Should have thrown");
-    } catch (Throwable ex) {
-      // expected
-    }
+    assertThrows(Throwable.class, () -> ts.assertValue(1));
 
     ts.onNext(1);
 
     ts.assertValue(1);
-
-    try {
-      ts.assertValue(2);
-      throw new RuntimeException("Should have thrown");
-    } catch (Throwable ex) {
-      // expected
-    }
+    assertThrows(Throwable.class, () -> ts.assertValue(2));
 
     ts.onNext(2);
-
-    try {
-      ts.assertValue(1);
-      throw new RuntimeException("Should have thrown");
-    } catch (Throwable ex) {
-      // expected
-    }
+    assertThrows(Throwable.class, () -> ts.assertValue(1));
   }
 
   @Test
@@ -1279,35 +981,19 @@ public class TestSubscriberTest {
     ts.onError(new IOException());
 
     assertTrue(ts.isTerminated());
+    assertThrows(AssertionError.class, ts::assertTerminated);
+    assertThrows(AssertionError.class, () -> ts.assertError(TestException.class));
+  }
 
-    try {
-      ts.assertTerminated();
-      throw new RuntimeException("Should have thrown");
-    } catch (AssertionError ex) {
-      // expected
-    }
-
-    try {
-      ts.assertError(TestException.class);
-      throw new RuntimeException("Should have thrown");
-    } catch (AssertionError ex) {
-      // expected
-    }
-
-
-    ts = TestSubscriber.create();
+  @Test
+  public void assertTerminated3() {
+    TestSubscriber<Integer> ts = TestSubscriber.create();
 
     ts.onSubscribe(new TestHelper.BooleanSubscription());
 
     ts.onError(new TestException());
     ts.onComplete();
-
-    try {
-      ts.assertTerminated();
-      throw new RuntimeException("Should have thrown");
-    } catch (AssertionError ex) {
-      // expected
-    }
+    assertThrows(AssertionError.class, ts::assertTerminated);
   }
 
   @Test
@@ -1349,54 +1035,21 @@ public class TestSubscriberTest {
 
     ts.onNext(1);
     ts.onNext(2);
-
-    try {
-      ts.assertValueSequence(Collections.emptyList());
-      throw new RuntimeException("Should have thrown");
-    } catch (AssertionError ex) {
-      // expected
-    }
-
-    try {
-      ts.assertValueSequence(Collections.singletonList(1));
-      throw new RuntimeException("Should have thrown");
-    } catch (AssertionError ex) {
-      // expected
-    }
-
+    assertThrows(AssertionError.class, () -> ts.assertValueSequence(Collections.emptyList()));
+    assertThrows(AssertionError.class, () -> ts.assertValueSequence(Collections.singletonList(1)));
     ts.assertValueSequence(Arrays.asList(1, 2));
-
-    try {
-      ts.assertValueSequence(Arrays.asList(1, 2, 3));
-      throw new RuntimeException("Should have thrown");
-    } catch (AssertionError ex) {
-      // expected
-    }
+    assertThrows(AssertionError.class, () -> ts.assertValueSequence(Arrays.asList(1, 2, 3)));
   }
 
   @Test
   public void assertEmpty() {
     TestSubscriber<Integer> ts = new TestSubscriber<>();
-
-    try {
-      ts.assertEmpty();
-      throw new RuntimeException("Should have thrown!");
-    } catch (AssertionError ex) {
-      // expected
-    }
+    assertThrows(AssertionError.class, ts::assertEmpty);
 
     ts.onSubscribe(new TestHelper.BooleanSubscription());
-
     ts.assertEmpty();
-
     ts.onNext(1);
-
-    try {
-      ts.assertEmpty();
-      throw new RuntimeException("Should have thrown!");
-    } catch (AssertionError ex) {
-      // expected
-    }
+    assertThrows(AssertionError.class, ts::assertEmpty);
   }
 
   @Test
@@ -1405,11 +1058,8 @@ public class TestSubscriberTest {
 
     Thread.currentThread().interrupt();
 
-    try {
-      ts.awaitDone(5, TimeUnit.SECONDS);
-    } catch (RuntimeException ex) {
-      assertTrue(ex.getCause() instanceof InterruptedException, ex.toString());
-    }
+    RuntimeException ex = assertThrows(RuntimeException.class, () -> ts.awaitDone(5, TimeUnit.SECONDS));
+    assertTrue(ex.getCause() instanceof InterruptedException, ex.toString());
   }
 
   @Test
@@ -1420,12 +1070,7 @@ public class TestSubscriberTest {
 
     ts.errors().add(new TestException());
 
-    try {
-      ts.assertNotSubscribed();
-      throw new RuntimeException("Should have thrown!");
-    } catch (AssertionError ex) {
-      // expected
-    }
+    assertThrows(AssertionError.class, ts::assertNotSubscribed);
   }
 
   @Test
@@ -1436,24 +1081,9 @@ public class TestSubscriberTest {
     ts.errors().add(e);
     ts.errors().add(new TestException());
 
-    try {
-      ts.assertError(TestException.class);
-      throw new RuntimeException("Should have thrown!");
-    } catch (AssertionError ex) {
-      // expected
-    }
-    try {
-      ts.assertError(e);
-      throw new RuntimeException("Should have thrown!");
-    } catch (AssertionError ex) {
-      // expected
-    }
-    try {
-      ts.assertErrorMessage("");
-      throw new RuntimeException("Should have thrown!");
-    } catch (AssertionError ex) {
-      // expected
-    }
+    assertThrows(AssertionError.class, () -> ts.assertError(TestException.class));
+    assertThrows(AssertionError.class, () -> ts.assertError(e));
+    assertThrows(AssertionError.class, () -> ts.assertErrorMessage(""));
   }
 
   @Test
@@ -1462,12 +1092,7 @@ public class TestSubscriberTest {
 
     ts.onSubscribe(new TestHelper.BooleanSubscription());
 
-    try {
-      ts.assertComplete();
-      throw new RuntimeException("Should have thrown!");
-    } catch (AssertionError ex) {
-      // expected
-    }
+    assertThrows(AssertionError.class, ts::assertComplete);
 
     ts.onComplete();
 
@@ -1475,12 +1100,7 @@ public class TestSubscriberTest {
 
     ts.onComplete();
 
-    try {
-      ts.assertComplete();
-      throw new RuntimeException("Should have thrown!");
-    } catch (AssertionError ex) {
-      // expected
-    }
+    assertThrows(AssertionError.class, ts::assertComplete);
   }
 
   @Test
@@ -1519,13 +1139,8 @@ public class TestSubscriberTest {
     });
 
     ts.onSubscribe(new TestHelper.BooleanSubscription());
-
-    try {
-      ts.onComplete();
-      throw new RuntimeException("Should have thrown!");
-    } catch (TestException ex) {
-      assertTrue(ts.isTerminated());
-    }
+    assertThrows(TestException.class, ts::onComplete);
+    assertTrue(ts.isTerminated());
   }
 
   @Test
@@ -1555,13 +1170,8 @@ public class TestSubscriberTest {
     });
 
     ts.onSubscribe(new TestHelper.BooleanSubscription());
-
-    try {
-      ts.onError(new IOException());
-      throw new RuntimeException("Should have thrown!");
-    } catch (TestException ex) {
-      assertTrue(ts.isTerminated());
-    }
+    assertThrows(TestException.class, () -> ts.onError(new IOException()));
+    assertTrue(ts.isTerminated());
   }
 
 //
@@ -1754,31 +1364,21 @@ public class TestSubscriberTest {
     Flux.<Integer>never()
         .subscribe(ts);
     assertFalse(ts.await(1, TimeUnit.MILLISECONDS));
-
-    try {
-      ts.assertResult(1);
-      fail("Should have thrown!");
-    } catch (AssertionError ex) {
-      assertTrue(ex.toString().contains("timeout!"), ex.toString());
-    }
+    AssertionError ex = assertThrows(AssertionError.class, () -> ts.assertResult(1));
+    assertTrue(ex.toString().contains("timeout!"), ex.toString());
   }
 
   @Test
   public void timeoutIndicated2() {
-    try {
-      final TestSubscriber<Integer> ts = TestSubscriber.create();
+    final TestSubscriber<Integer> ts = TestSubscriber.create();
 
-      Flux.<Integer>never().subscribe(ts);
+    Flux.<Integer>never().subscribe(ts);
 
-      ts.awaitDone(1, TimeUnit.MILLISECONDS)
-          .assertResult(1);
-
-      fail("Should have thrown!");
-    } catch (AssertionError ex) {
-      assertTrue(ex.toString().contains("timeout!"), ex.toString());
-    }
+    AssertionError ex = assertThrows(AssertionError.class, () ->
+        ts.awaitDone(1, TimeUnit.MILLISECONDS).assertResult(1)
+    );
+    assertTrue(ex.toString().contains("timeout!"), ex.toString());
   }
-
 
   @Test
   public void timeoutIndicated3() {
@@ -1787,26 +1387,16 @@ public class TestSubscriberTest {
     Flux.<Integer>never().subscribe(ts);
 
     assertFalse(ts.awaitTerminalEvent(1, TimeUnit.MILLISECONDS));
-
-    try {
-      ts.assertResult(1);
-      fail("Should have thrown!");
-    } catch (AssertionError ex) {
-      assertTrue(ex.toString().contains("timeout!"), ex.toString());
-    }
+    AssertionError ex = assertThrows(AssertionError.class, () -> ts.assertResult(1));
+    assertTrue(ex.toString().contains("timeout!"), ex.toString());
   }
 
   @Test
   public void disposeIndicated() {
     TestSubscriber<Object> ts = new TestSubscriber<>();
     ts.cancel();
-
-    try {
-      ts.assertResult(1);
-      fail("Should have thrown!");
-    } catch (Throwable ex) {
-      assertTrue(ex.toString().contains("disposed!"), ex.toString());
-    }
+    Throwable ex = assertThrows(Throwable.class, () -> ts.assertResult(1));
+    assertTrue(ex.toString().contains("disposed!"), ex.toString());
   }
 
   @Test
@@ -1862,12 +1452,9 @@ public class TestSubscriberTest {
 
   @Test
   public void interruptTestWaitStrategy() {
-    try {
-      Thread.currentThread().interrupt();
-      BaseTestConsumer.TestWaitStrategy.SLEEP_1000MS.run();
-    } catch (RuntimeException ex) {
-      assertTrue(ex.getCause() instanceof InterruptedException, ex.toString());
-    }
+    Thread.currentThread().interrupt();
+    RuntimeException ex = assertThrows(RuntimeException.class, () -> BaseTestConsumer.TestWaitStrategy.SLEEP_1000MS.run());
+    assertTrue(ex.getCause() instanceof InterruptedException, ex.toString());
   }
 
   @Test
@@ -1895,16 +1482,14 @@ public class TestSubscriberTest {
 
   @Test
   public void assertTimeout2() {
-    try {
-      TestSubscriber<Integer> ts = TestSubscriber.create();
-      Flux.<Integer>empty()
-          .subscribe(ts);
+    TestSubscriber<Integer> ts = TestSubscriber.create();
+    Flux.<Integer>empty()
+        .subscribe(ts);
+
+    assertThrows(AssertionError.class, () ->
       ts.awaitCount(1, BaseTestConsumer.TestWaitStrategy.SLEEP_1MS, 50)
-          .assertTimeout();
-      fail("Should have thrown!");
-    } catch (AssertionError ex) {
-      assertTrue(ex.getMessage().contains("No timeout?!"), ex.toString());
-    }
+          .assertTimeout()
+    );
   }
 
   @Test
@@ -1920,49 +1505,41 @@ public class TestSubscriberTest {
 
   @Test
   public void assertNoTimeout2() {
-    try {
-      TestSubscriber<Integer> ts = TestSubscriber.create();
-      Flux.<Integer>never()
-          .subscribe(ts);
+    TestSubscriber<Integer> ts = TestSubscriber.create();
+    Flux.<Integer>never()
+        .subscribe(ts);
 
-      ts.awaitCount(1, BaseTestConsumer.TestWaitStrategy.SLEEP_1MS, 50)
-          .assertNoTimeout();
-      fail("Should have thrown!");
-    } catch (AssertionError ex) {
-      assertTrue(ex.getMessage().contains("Timeout?!"), ex.toString());
-    }
+    assertThrows(AssertionError.class, () ->
+        ts.awaitCount(1, BaseTestConsumer.TestWaitStrategy.SLEEP_1MS, 50)
+            .assertNoTimeout()
+    );
   }
 
   @Test
   public void assertNeverPredicateThrows() {
-    try {
-      TestSubscriber<Integer> ts = TestSubscriber.create();
+    TestSubscriber<Integer> ts = TestSubscriber.create();
 
-      Flux.just(1)
-          .subscribe(ts);
+    Flux.just(1)
+        .subscribe(ts);
+
+    assertThrows(IllegalArgumentException.class, () ->
       ts.assertNever(t -> {
         throw new IllegalArgumentException();
-      });
-      fail("Should have thrown!");
-    } catch (IllegalArgumentException ex) {
-      // expected
-    }
+      })
+    );
   }
 
   @Test
   public void assertValueAtPredicateThrows() {
-    try {
-      TestSubscriber<Integer> ts = TestSubscriber.create();
-      Flux.just(1)
-          .subscribe(ts);
+    TestSubscriber<Integer> ts = TestSubscriber.create();
+    Flux.just(1)
+        .subscribe(ts);
 
+    assertThrows(IllegalArgumentException.class, () ->
       ts.assertValueAt(0, t -> {
         throw new IllegalArgumentException();
-      });
-      fail("Should have thrown!");
-    } catch (IllegalArgumentException ex) {
-      // expected
-    }
+      })
+    );
   }
 
   @Test
@@ -1995,13 +1572,7 @@ public class TestSubscriberTest {
     ts.assertValuesOnly(5);
 
     ts.onNext(-1);
-
-    try {
-      ts.assertValuesOnly(5);
-      fail("");
-    } catch (AssertionError ex) {
-      // expected
-    }
+    assertThrows(AssertionError.class, () -> ts.assertValuesOnly(5));
   }
 
   @Test
@@ -2010,13 +1581,7 @@ public class TestSubscriberTest {
     ts.onSubscribe(new TestHelper.BooleanSubscription());
 
     ts.onComplete();
-
-    try {
-      ts.assertValuesOnly();
-      fail("");
-    } catch (AssertionError ex) {
-      // expected
-    }
+    assertThrows(AssertionError.class, ts::assertValuesOnly);
   }
 
   @Test
@@ -2025,13 +1590,7 @@ public class TestSubscriberTest {
     ts.onSubscribe(new TestHelper.BooleanSubscription());
 
     ts.onError(new TestException());
-
-    try {
-      ts.assertValuesOnly();
-      fail("");
-    } catch (AssertionError ex) {
-      // expected
-    }
+    assertThrows(AssertionError.class, ts::assertValuesOnly);
   }
 
   @Test

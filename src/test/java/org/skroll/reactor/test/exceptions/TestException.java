@@ -10,6 +10,7 @@ public class TestException extends RuntimeException {
    * @param message the message
    * @param cause the cause
    */
+  ///CLOVER:OFF
   public TestException(String message, Throwable cause) {
     super(message, cause);
   }
@@ -29,4 +30,5 @@ public class TestException extends RuntimeException {
   public TestException(Throwable cause) {
     super(cause);
   }
+  ///CLOVER:ON
 }
