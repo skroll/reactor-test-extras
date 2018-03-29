@@ -1598,4 +1598,13 @@ public class TestSubscriberTest {
     TestSubscriber<Integer> ts = TestSubscriber.create();
     ts.awaitCount(0, BaseTestConsumer.TestWaitStrategy.SLEEP_1MS, 0);
   }
+
+  @Test
+  public void testDeferredRequest() {
+    TestSubscriber<Integer> ts = new TestSubscriber<>();
+    ts.request(5);
+    Flux.just(1, 2, 3, 4, 5).subscribe(ts);
+    ts.assertValueCount(5);
+    ts.assertComplete();
+  }
 }
