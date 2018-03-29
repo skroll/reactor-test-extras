@@ -7,6 +7,7 @@ import reactor.core.Exceptions;
 import reactor.core.publisher.Operators;
 
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.Assert.assertSame;
@@ -28,9 +29,7 @@ public enum TestHelper {
   }
 
   @SuppressWarnings("unchecked")
-
   public static <E extends Enum<E>> void checkEnum(Class<E> enumClass) {
-
     try {
       Method m = enumClass.getMethod("values");
       m.setAccessible(true);
@@ -40,13 +39,18 @@ public enum TestHelper {
       for (Enum<E> o : (Enum<E>[])m.invoke(null)) {
         assertSame(o, e.invoke(null, o.name()));
       }
-
     } catch (Throwable ex) {
-
       throw Exceptions.propagate(ex);
-
     }
+  }
 
+  public static void assertError(final List<Throwable> list, final int index, final Class<? extends Throwable> clazz) {
+    final Throwable ex = list.get(index);
+    if (!clazz.isInstance(ex)) {
+      AssertionError err = new AssertionError(clazz + " expected but got " + list.get(index));
+      err.initCause(list.get(index));
+      throw err;
+    }
   }
 
   public static class BooleanSubscription extends AtomicBoolean implements Subscription {

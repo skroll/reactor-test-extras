@@ -6,11 +6,14 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.skroll.reactor.test.exceptions.TestException;
 import reactor.core.CoreSubscriber;
+import reactor.core.Fuseable;
 import reactor.core.publisher.EmitterProcessor;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.core.publisher.Operators;
 import reactor.core.publisher.Signal;
 import reactor.core.publisher.SignalType;
+import reactor.core.publisher.UnicastProcessor;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
@@ -604,7 +607,6 @@ public class TestSubscriberTest {
     ts.awaitTerminalEvent();
   }
 
-
   @Test
   public void createDelegate() {
     TestSubscriber<Integer> ts1 = TestSubscriber.create();
@@ -718,51 +720,100 @@ public class TestSubscriberTest {
     ts.assertFailureAndMessage(TestException.class, "Forced failure", 1);
   }
 
-//  @Test
-//  public void assertFuseable() {
-//    TestSubscriber<Integer> ts = TestSubscriber.create();
-//
-//    ts.onSubscribe(new TestHelper.BooleanSubscription());
-//
-//    ts.assertNotFuseable();
-//
-//    try {
-//      ts.assertFuseable();
-//      throw new RuntimeException("Should have thrown");
-//    } catch (AssertionError ex) {
-//      // expected
-//    }
-//
-//    try {
-//      ts.assertFusionMode(QueueFuseable.SYNC);
-//      throw new RuntimeException("Should have thrown");
-//    } catch (AssertionError ex) {
-//      // expected
-//    }
-//    ts = TestSubscriber.create();
-//    ts.setInitialFusionMode(QueueFuseable.ANY);
-//
-//    ts.onSubscribe(new ScalarSubscription<Integer>(ts, 1));
-//
-//    ts.assertFuseable();
-//
-//    ts.assertFusionMode(QueueFuseable.SYNC);
-//
-//    try {
-//      ts.assertFusionMode(QueueFuseable.NONE);
-//      throw new RuntimeException("Should have thrown");
-//    } catch (AssertionError ex) {
-//      // expected
-//    }
-//
-//    try {
-//      ts.assertNotFuseable();
-//      throw new RuntimeException("Should have thrown");
-//    } catch (AssertionError ex) {
-//      // expected
-//    }
-//
-//  }
+  @Test
+  public void assertFuseable1() {
+    TestSubscriber<Integer> ts = TestSubscriber.create();
+
+    ts.onSubscribe(new TestHelper.BooleanSubscription());
+
+    ts.assertNotFuseable();
+    assertThrows(AssertionError.class, ts::assertFuseable);
+    assertThrows(AssertionError.class, () -> ts.assertFusionMode(Fuseable.SYNC));
+  }
+
+  @Test
+  public void assertFuseable2() {
+    TestSubscriber<Integer> ts = TestSubscriber.create();
+    ts.setInitialFusionMode(Fuseable.ANY);
+
+    ts.onSubscribe(Operators.scalarSubscription(ts, 1));
+
+    ts.assertFuseable();
+
+    ts.assertFusionMode(Fuseable.SYNC);
+
+    assertThrows(AssertionError.class, () -> ts.assertFusionMode(Fuseable.NONE));
+    assertThrows(AssertionError.class, ts::assertNotFuseable);
+  }
+
+  @Test
+  public void testAsyncFusion1() throws Exception {
+    TestSubscriber<Integer> ts = TestSubscriber.create();
+    ts.setInitialFusionMode(Fuseable.ANY);
+
+    UnicastProcessor<Integer> up = UnicastProcessor.create();
+    up.subscribe(ts);
+
+    up.onNext(1);
+    up.onNext(2);
+    up.onNext(3);
+
+    ts.assertFuseable()
+      .assertFusionMode(Fuseable.ASYNC)
+      .assertValueAt(0, 1)
+      .assertValueAt(1, 2)
+      .assertValueAt(2, 3)
+      .awaitCount(3);
+
+    up.onComplete();
+    ts.await();
+  }
+
+  @Test
+  public void testAsyncFusion2() throws Exception {
+    TestSubscriber<Integer> ts = TestSubscriber.create();
+    ts.setInitialFusionMode(Fuseable.ANY);
+
+    UnicastProcessor<Integer> up = UnicastProcessor.create();
+
+    up.onNext(1);
+    up.onNext(2);
+    up.onNext(3);
+    up.subscribe(ts);
+
+    ts.assertFuseable()
+      .assertFusionMode(Fuseable.ASYNC)
+      .assertValueAt(0, 1)
+      .assertValueAt(1, 2)
+      .assertValueAt(2, 3)
+      .awaitCount(3);
+
+    up.onComplete();
+    ts.await();
+  }
+
+  @Test
+  public void testNonFusion() {
+    TestSubscriber<Integer> ts = TestSubscriber.create();
+    ts.setInitialFusionMode(Fuseable.ANY);
+
+    Subscription s = new Subscription() {
+      @Override
+      public void request(final long n) {
+
+      }
+
+      @Override
+      public void cancel() {
+
+      }
+    };
+
+    ts.onSubscribe(s);
+
+    ts.assertNotFuseable()
+      .assertFusionMode(Fuseable.NONE);
+  }
 
   @Test
   public void assertTerminated() {
@@ -845,7 +896,6 @@ public class TestSubscriberTest {
     ts1.assertValueSet(Collections.emptySet());
   }
 
-  /*
   @Test
   public void errors() {
     TestSubscriber<Integer> ts = TestSubscriber.create();
@@ -860,43 +910,45 @@ public class TestSubscriberTest {
 
     TestHelper.assertError(ts.errors(), 0, TestException.class);
   }
-*/
-//  @SuppressWarnings("unchecked")
-//  @Test
-//  public void onNext() {
-//    TestSubscriber<Integer> ts = TestSubscriber.create();
-//
-//    ts.onSubscribe(new TestHelper.BooleanSubscription());
-//
-//    assertEquals(0, ts.valueCount());
-//
-//    assertEquals(Collections.emptyList(), ts.values());
-//
-//    ts.onNext(1);
-//
-//    assertEquals(Collections.singletonList(1), ts.values());
-//
-//    ts.cancel();
-//
-//    assertTrue(ts.isCancelled());
-//    assertTrue(ts.isDisposed());
-//
-//    ts.assertValue(1);
-//
-//    assertEquals(Arrays.asList(Collections.singletonList(1), Collections.emptyList(), Collections.emptyList()), ts.getEvents());
-//
-//    ts.onComplete();
-//
-//    assertEquals(Arrays.asList(Collections.singletonList(1), Collections.emptyList(), Collections.singletonList(Notification.createOnComplete())), ts.getEvents());
-//  }
 
-//  @Test
-//  public void fusionModeToString() {
-//    assertEquals("NONE", TestSubscriber.fusionModeToString(QueueFuseable.NONE));
-//    assertEquals("SYNC", TestSubscriber.fusionModeToString(QueueFuseable.SYNC));
-//    assertEquals("ASYNC", TestSubscriber.fusionModeToString(QueueFuseable.ASYNC));
-//    assertEquals("Unknown(100)", TestSubscriber.fusionModeToString(100));
-//  }
+  @SuppressWarnings("unchecked")
+  @Test
+  public void onNext() {
+    TestSubscriber<Integer> ts = TestSubscriber.create();
+
+    ts.onSubscribe(new TestHelper.BooleanSubscription());
+
+    assertEquals(0, ts.valueCount());
+
+    assertEquals(Collections.emptyList(), ts.values());
+
+    ts.onNext(1);
+
+    assertEquals(Collections.singletonList(1), ts.values());
+
+    ts.cancel();
+
+    assertTrue(ts.isCancelled());
+    assertTrue(ts.isDisposed());
+
+    ts.assertValue(1);
+
+    assertEquals(Arrays.asList(Collections.singletonList(1), Collections.emptyList(), Collections.emptyList()), ts.getEvents());
+
+    ts.onComplete();
+
+    assertEquals(Arrays.asList(Collections.singletonList(1), Collections.emptyList(), Collections.singletonList(Signal.complete())), ts.getEvents());
+  }
+
+  @Test
+  public void fusionModeToString() {
+    assertEquals("(any)", TestSubscriber.fusionModeToString(Fuseable.ANY));
+    assertEquals("(sync)", TestSubscriber.fusionModeToString(Fuseable.SYNC));
+    assertEquals("(async)", TestSubscriber.fusionModeToString(Fuseable.ASYNC));
+    assertEquals("(none)", TestSubscriber.fusionModeToString(Fuseable.NONE));
+    assertEquals("(thread-barrier)", TestSubscriber.fusionModeToString(Fuseable.THREAD_BARRIER));
+    assertEquals("(unknown: 100)", TestSubscriber.fusionModeToString(100));
+  }
 
   @Test
   public void multipleTerminals() {
@@ -1118,12 +1170,10 @@ public class TestSubscriberTest {
 
       @Override
       public void onSubscribe(Subscription d) {
-
       }
 
       @Override
       public void onNext(Integer value) {
-
       }
 
       @Override
@@ -1174,46 +1224,38 @@ public class TestSubscriberTest {
     assertTrue(ts.isTerminated());
   }
 
-//
-//  @Test
-//  public void syncQueueThrows() {
-//    TestSubscriber<Object> ts = new TestSubscriber<Object>();
-//    ts.setInitialFusionMode(QueueFuseable.SYNC);
-//
-//    Flux.range(1, 5)
-//        .map(new Function<Integer, Object>() {
-//          @Override
-//          public Object apply(Integer v) throws Exception { throw new TestException(); }
-//        })
-//        .subscribe(ts);
-//
-//    ts.assertSubscribed()
-//        .assertFuseable()
-//        .assertFusionMode(QueueFuseable.SYNC)
-//        .assertFailure(TestException.class);
-//  }
-//
-//  @Test
-//  public void asyncQueueThrows() {
-//    TestSubscriber<Object> ts = new TestSubscriber<Object>();
-//    ts.setInitialFusionMode(QueueFuseable.ANY);
-//
-//    UnicastProcessor<Integer> up = UnicastProcessor.create();
-//
-//    up
-//        .map(new Function<Integer, Object>() {
-//          @Override
-//          public Object apply(Integer v) throws Exception { throw new TestException(); }
-//        })
-//        .subscribe(ts);
-//
-//    up.onNext(1);
-//
-//    ts.assertSubscribed()
-//        .assertFuseable()
-//        .assertFusionMode(QueueFuseable.ASYNC)
-//        .assertFailure(TestException.class);
-//  }
+  @Test
+  public void syncQueueThrows() {
+    TestSubscriber<Object> ts = new TestSubscriber<>();
+    ts.setInitialFusionMode(Fuseable.SYNC);
+
+    Flux.range(1, 5)
+        .map(n -> { throw new TestException(); })
+        .subscribe(ts);
+
+    ts.assertSubscribed()
+        .assertFuseable()
+        .assertFusionMode(Fuseable.SYNC)
+        .assertFailure(TestException.class);
+  }
+
+  @Test
+  public void asyncQueueThrows() {
+    TestSubscriber<Object> ts = new TestSubscriber<>();
+    ts.setInitialFusionMode(Fuseable.ANY);
+
+    UnicastProcessor<Integer> up = UnicastProcessor.create();
+
+    up.map(n -> { throw new TestException(); })
+      .subscribe(ts);
+
+    up.onNext(1);
+
+    ts.assertSubscribed()
+        .assertFuseable()
+        .assertFusionMode(Fuseable.ASYNC)
+        .assertFailure(TestException.class);
+  }
 
   @Test
   public void assertValuePredicateEmpty() {

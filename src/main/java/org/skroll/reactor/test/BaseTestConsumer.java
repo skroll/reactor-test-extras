@@ -39,6 +39,10 @@ public abstract class BaseTestConsumer<T, U extends BaseTestConsumer<T, U>> impl
 
   protected boolean checkSubscriptionOnce;
 
+  protected int initialFusionMode;
+
+  protected int establishedFusionMode;
+
   /**
    * The optional tag associated with this test consumer.
    */

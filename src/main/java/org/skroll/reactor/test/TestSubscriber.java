@@ -6,9 +6,13 @@ import java.util.function.Consumer;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import reactor.core.CoreSubscriber;
 import reactor.core.Disposable;
 import reactor.core.Exceptions;
+import reactor.core.Fuseable;
+import reactor.core.Fuseable.QueueSubscription;
 import reactor.core.publisher.Operators;
+import reactor.util.annotation.NonNull;
 
 /**
  * A subscriber that records events and allows making assertions about them.
@@ -24,7 +28,7 @@ import reactor.core.publisher.Operators;
  * @param <T> the value type
  */
 public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>>
-    implements Subscriber<T>, Subscription, Disposable {
+    implements CoreSubscriber<T>, Subscription, Disposable {
   /** The actual subscriber to forward events to. */
   private final Subscriber<? super T> actual;
 
@@ -43,6 +47,8 @@ public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>>
 
   private static final AtomicLongFieldUpdater<TestSubscriber> MISSED_REQUESTED =
       AtomicLongFieldUpdater.newUpdater(TestSubscriber.class, "missedRequested");
+
+  private Fuseable.QueueSubscription<T> qs;
 
   /**
    * Creates a TestSubscriber with Long.MAX_VALUE initial request.
@@ -118,7 +124,7 @@ public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>>
 
   @SuppressWarnings("unchecked")
   @Override
-  public void onSubscribe(final Subscription s) {
+  public void onSubscribe(@NonNull final Subscription s) {
     lastThread = Thread.currentThread();
 
     if (s == null) {
@@ -132,6 +138,33 @@ public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>>
         errors.add(new IllegalStateException("onSubscribe received multiple subscriptions: " + s));
       }
       return;
+    }
+
+    if (initialFusionMode != Fuseable.NONE) {
+      if (s instanceof QueueSubscription) {
+        qs = (QueueSubscription<T>) s;
+
+        final int m = qs.requestFusion(initialFusionMode);
+        establishedFusionMode = m;
+
+        if (m == Fuseable.SYNC) {
+          checkSubscriptionOnce = true;
+          lastThread = Thread.currentThread();
+          try {
+            T t = qs.poll();
+            while (t != null) {
+              values.add(t);
+              t = qs.poll();
+            }
+            completions++;
+          } catch (Throwable ex) {
+            // Exceptions.throwIfFatal(ex);
+            // TODO: Add fatal exceptions?
+            errors.add(ex);
+          }
+          return;
+        }
+      }
     }
 
     actual.onSubscribe(s);
@@ -160,6 +193,22 @@ public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>>
       }
     }
     lastThread = Thread.currentThread();
+
+    if (establishedFusionMode == Fuseable.ASYNC) {
+      try {
+        T t2 = qs.poll();
+        while (t2 != null) {
+          values.add(t2);
+          t2 = qs.poll();
+        }
+      } catch (final Throwable ex) {
+        // Exceptions.throwIfFatal(ex);
+        // TODO: Add fatal exceptions?
+        errors.add(ex);
+        qs.cancel();
+      }
+      return;
+    }
 
     values.add(t);
 
@@ -280,6 +329,73 @@ public class TestSubscriber<T> extends BaseTestConsumer<T, TestSubscriber<T>>
     return this;
   }
 
+  /**
+   * Sets the initial fusion mode if the upstream supports fusion.
+   * @param mode the mode to establish, see the {@link Fuseable} constants
+   * @return this
+   */
+  public final TestSubscriber<T> setInitialFusionMode(final int mode) {
+    this.initialFusionMode = mode;
+    return this;
+  }
+
+  /**
+   * Asserts that the given fusion mode has been established.
+   * @param mode the expected mode
+   * @return this
+   */
+  public final TestSubscriber<T> assertFusionMode(final int mode) {
+    final int m = establishedFusionMode;
+    if (m != mode) {
+      if (qs != null) {
+        throw new AssertionError("Fusion mode different. Expected: " + fusionModeToString(mode)
+          + ", actual: " + fusionModeToString(m));
+      } else {
+        throw fail("Upstream is not fuseable");
+      }
+    }
+
+    return this;
+  }
+
+  static String fusionModeToString(final int mode) {
+    switch (mode) {
+      case Fuseable.ANY:
+        return "(any)";
+      case Fuseable.SYNC:
+        return "(sync)";
+      case Fuseable.ASYNC:
+        return "(async)";
+      case Fuseable.NONE:
+        return "(none)";
+      case Fuseable.THREAD_BARRIER:
+        return "(thread-barrier)";
+      default:
+        return "(unknown: " + mode + ")";
+    }
+  }
+
+  /**
+   * Assert that the upstream is a fuseable source.
+   * @return this
+   */
+  public final TestSubscriber<T> assertFuseable() {
+    if (qs == null) {
+      throw new AssertionError("Upstream is not fuseable");
+    }
+    return this;
+  }
+
+  /**
+   * Assert that the upstream is not a fuseable source.
+   * @return this
+   */
+  public final TestSubscriber<T> assertNotFuseable() {
+    if (qs != null) {
+      throw new AssertionError("Upstream is fuseable");
+    }
+    return this;
+  }
 
   /**
    * Run a check consumer with this TestSubscriber instance.
